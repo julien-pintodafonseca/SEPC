@@ -1,7 +1,7 @@
 #include "debugger.h"
 #include "cpu.h"
 #include "printf.c"
-#include "test/affichage.test.c"
+#include "test/affichage-test.c"
 
 int fact(int n)
 {
