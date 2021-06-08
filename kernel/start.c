@@ -1,7 +1,9 @@
 #include "debugger.h"
 #include "cpu.h"
-#include "printf.c"
-#include "test/affichage-test.c"
+#include "stdbool.h"
+
+// #include "test/affichage.test.c"
+#include "horloge.h"
 
 int fact(int n)
 {
@@ -13,11 +15,9 @@ int fact(int n)
 
 void kernel_start(void)
 {
-	int i;
 	// call_debugger(); // useless with qemu -s -S
-
-	i = 10;
-	i = fact(i);
+	init_traitant_IT(32, tic_PIT); // initialisation traitant 32
+	masque_IRQ(0, 1);			   // masque l'IRQ 0
 
 	/* AFFICHAGE.C */
 	/*
@@ -27,6 +27,10 @@ void kernel_start(void)
 	*/
 
 	// affichageTest();
+
+	/* HORLOGE.C */
+	// démasquage des interruptions externes
+	sti();
 
 	while (1)
 		hlt();
