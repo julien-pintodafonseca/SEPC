@@ -47,6 +47,7 @@ void place_curseur(uint32_t lig, uint32_t col)
 void efface_ecran(void)
 {
     memset(ptr_mem(0, 0), 0, 2 * NB_LIG * NB_COL);
+    place_curseur(0, 0);
 }
 
 /* Défilement de l'écran */
