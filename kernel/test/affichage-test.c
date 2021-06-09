@@ -1,4 +1,6 @@
-#include "../affichage.h"
+#include "affichage.h"
+#include "console.h"
+#include "stdio.h"
 
 void affichageTest(void)
 {

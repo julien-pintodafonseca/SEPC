@@ -2,7 +2,7 @@
 #include "cpu.h"
 #include "stdbool.h"
 
-// #include "test/affichage.test.c"
+#include "test/affichage-test.c"
 #include "horloge.h"
 
 int fact(int n)

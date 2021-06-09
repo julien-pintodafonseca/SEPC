@@ -3,14 +3,13 @@
 #include "cpu.h"
 #include "string.h"
 #include "stdbool.h"
+#include "stdio.h"
 
 #include "affichage.h"
-#include "printf.c"
-#include "sprintf.c"
 
-uint64_t *idt = (uint64_t *)(0x1000);   // table des vecteurs d'interruption (=> longueur 256)
-const int CLOCKFREQ = 300;              // fréquence d'interruption, entre 100Hz et 1000Hz
-unsigned long clock = 0;                // nombre d'interruptions
+uint64_t *idt = (uint64_t *)(0x1000); // table des vecteurs d'interruption (=> longueur 256)
+const int CLOCKFREQ = 300;            // fréquence d'interruption, entre 100Hz et 1000Hz
+unsigned long clock = 0;              // nombre d'interruptions
 
 void init_traitant_IT(int32_t num_IT, void (*traitant)(void))
 {
@@ -44,7 +43,7 @@ void tic_PIT(void)
 
 void clock_settings(unsigned long *quartz, unsigned long *ticks)
 {
-    *quartz = 0x1234DD; // fréquence d'oscillation du quartz
+    *quartz = 0x1234DD;                   // fréquence d'oscillation du quartz
     *ticks = (*quartz / CLOCKFREQ) % 256; // nombre d'oscillations du quartz entre chaque interruption
     outb(0x34, 0x43);
     outb(*ticks, 0x40);
@@ -54,7 +53,7 @@ void clock_settings(unsigned long *quartz, unsigned long *ticks)
 void masque_IRQ(uint32_t num_IRQ, bool masque)
 {
     uint8_t actual_mask = inb(0x21);
-    actual_mask ^= (-masque ^ actual_mask) & (1UL << num_IRQ);  //actual_mask[num_IRQ] = masque;
+    actual_mask ^= (-masque ^ actual_mask) & (1UL << num_IRQ); //actual_mask[num_IRQ] = masque;
     outb(actual_mask, 0x21);
 }
 
