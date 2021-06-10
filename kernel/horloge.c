@@ -9,21 +9,27 @@
 #include "horloge.h"
 
 uint64_t *idt = (uint64_t *)(0x1000); // table des vecteurs d'interruption (=> longueur 256)
-const int CLOCKFREQ = 300;            // fréquence d'interruption, entre 100Hz et 1000Hz
+const int CLOCKFREQ = 50;             // fréquence d'interruption, entre 100Hz et 1000Hz
 unsigned long clock = 0;              // nombre d'interruptions
 
 void init_traitant_IT(int32_t num_IT, void (*traitant)(void))
 {
-    uint32_t w1 = (KERNEL_CS << 16) + ((uint32_t)traitant & 0x0F);
-    uint32_t w2 = ((uint32_t)traitant & 0xF0) + (0x8E00);
-    *(idt + num_IT * sizeof(uint64_t)) = w1;
-    *(idt + num_IT * sizeof(uint64_t) + sizeof(uint32_t)) = w2;
+    uint32_t w1 = (KERNEL_CS << 16) + ((uint32_t)traitant & 0x0000FFFF);
+    uint32_t w2 = ((uint32_t)traitant & 0xFFFF0000) + (0x8E00);
+    idt[num_IT] = ((uint64_t)(w2) << 32) | (uint64_t)(w1);
+    printf("KERNEL_CS   %X\n", KERNEL_CS);
+    printf("traitant    %X\n", (uint32_t)(traitant));
+    printf("w1          %X\n", w1);
+    printf("w2          %X\n", w2);
+    printf("Res         %llX\n", ((uint64_t)(w2) << 32) | (uint64_t)(w1));
+    printf("idt[num_IT] %llX", idt[num_IT]);
 }
 
 void clock_settings(unsigned long *quartz, unsigned long *ticks)
 {
     *quartz = 0x1234DD;                   // fréquence d'oscillation du quartz
     *ticks = (*quartz / CLOCKFREQ) % 256; // nombre d'oscillations du quartz entre chaque interruption
+    // ici ???
     outb(0x34, 0x43);
     outb(*ticks, 0x40);
     outb(*ticks >> 8, 0x40);
@@ -32,24 +38,22 @@ void clock_settings(unsigned long *quartz, unsigned long *ticks)
 void tic_PIT(void)
 {
     outb(0x20, 0x20); // acquittement de l'interruption
-    clock++;
+    clock++;          // Toutes les 20ms
 
     char str[256];
-    sprintf(str, "%ld", current_clock());
+    unsigned long cur_clock = current_clock();
+    unsigned long hours = 0;                               // TODO calculer correctement
+    unsigned long minutes = 0;                             // TODO calculer correctement
+    unsigned long secondes = cur_clock;                    // TODO calculer correctement
+    sprintf(str, "%ld:%ld:%ld", hours, minutes, secondes); // TODO améliorer affichage
     show_time(str);
-}
-
-void show_time(const char *chaine)
-{
-    uint32_t x = 79 - strlen(chaine);
-    uint32_t y = 0;
-    place_curseur(y, x);
-    printf("%s", chaine);
 }
 
 void wait_clock(unsigned long clock)
 {
-    printf("wait_clock(%ld)", clock); // TODO
+    // Passe le processus dans l'état endormi
+    // attend le nombre d'interruptions en param atteint ou dépassé
+    printf("wait_clock(%ld)", clock); // TODO plus tard
 }
 
 void masque_IRQ(uint32_t num_IRQ, bool masque)

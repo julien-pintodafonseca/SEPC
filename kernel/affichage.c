@@ -4,6 +4,7 @@
 #include "stdint.h"
 #include "cpu.h"
 #include "string.h"
+#include "stdio.h"
 
 #define NB_LIG 25
 #define NB_COL 80
@@ -134,4 +135,12 @@ void console_putbytes(char *chaine, int32_t taille)
     {
         traite_car(chaine[i]);
     }
+}
+
+void show_time(const char *chaine)
+{
+    uint32_t x = NB_COL - strlen(chaine);
+    uint32_t y = 0;
+    place_curseur(y, x);
+    printf("%s", chaine);
 }
