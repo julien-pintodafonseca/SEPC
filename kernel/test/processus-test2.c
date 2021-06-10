@@ -21,7 +21,7 @@ void proc1_t2(void) // pid 1
     {
         printf("[proc1] idle m'a donne la main\n");
         printf("[proc1] je tente de lui la redonner...\n");
-        context_switch(0, 1);
+        context_switch(1, 0);
     }
 }
 
