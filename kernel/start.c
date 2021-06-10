@@ -6,7 +6,7 @@
 #include "test/affichage-test.c"
 #include "test/processus-test1.c"
 #include "test/processus-test2.c"
-#include "horloge.h"
+#include "test/horloge-test.c"
 
 void kernel_start(void)
 {
@@ -17,8 +17,10 @@ void kernel_start(void)
 	bool horlogeT = 1;
 
 	/* initialisation */
-	//call_debugger(); // useless with qemu -s -S
-	efface_ecran(); // efface l'écran
+	//call_debugger(); 				 // useless with qemu -s -S
+	unsigned long quartz, ticks;
+	clock_settings(&quartz, &ticks); // réglade de l'horloge
+	efface_ecran();					 // efface l'écran
 
 	/* tests */
 	if (affichageT)
@@ -29,13 +31,7 @@ void kernel_start(void)
 		processusTest2();
 	if (horlogeT)
 	{
-		printf("start\n");
-		// initialisations
-		unsigned long quartz, ticks;
-		clock_settings(&quartz, &ticks);	  // réglade de l'horloge
-		masque_IRQ(0, 0);					  // démasquage de l'IRQ 0
-		init_traitant_IT(32, traitant_IT_32); // initialisation du traitant 32
-		sti();								  // démasquage des interruptions externes
+		horlogeTest();
 	}
 
 	// boucle d'attente
