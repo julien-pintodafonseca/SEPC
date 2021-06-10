@@ -16,13 +16,18 @@ void init_traitant_IT(int32_t num_IT, void (*traitant)(void))
 {
     uint32_t w1 = (KERNEL_CS << 16) + ((uint32_t)traitant & 0x0000FFFF);
     uint32_t w2 = ((uint32_t)traitant & 0xFFFF0000) + (0x8E00);
-    idt[num_IT] = ((uint64_t)(w2) << 32) | (uint64_t)(w1);
-    printf("KERNEL_CS   %X\n", KERNEL_CS);
-    printf("traitant    %X\n", (uint32_t)(traitant));
-    printf("w1          %X\n", w1);
-    printf("w2          %X\n", w2);
-    printf("Res         %llX\n", ((uint64_t)(w2) << 32) | (uint64_t)(w1));
-    printf("idt[num_IT] %llX", idt[num_IT]);
+    uint64_t *adr = (uint64_t *)(&idt + num_IT * sizeof(uint64_t));
+    *adr = w1;
+    *(adr + sizeof(uint32_t)) = w2;
+
+    printf("KERNEL_CS   %.4x\n", KERNEL_CS);
+    printf("traitant    %.8x\n", (uint32_t)(traitant));
+    printf("w1          %.8x\n", w1);
+    printf("w2          %.8x\n", w2);
+    printf("adr1        %p\n", adr);
+    printf("r1          %.8x\n", (uint32_t)(*adr));
+    printf("r2          %.8x\n", (uint32_t) * (adr + sizeof(uint32_t)));
+    printf("num_IT      %d", num_IT);
 }
 
 void clock_settings(unsigned long *quartz, unsigned long *ticks)
@@ -47,6 +52,14 @@ void tic_PIT(void)
     unsigned long secondes = cur_clock;                    // TODO calculer correctement
     sprintf(str, "%ld:%ld:%ld", hours, minutes, secondes); // TODO améliorer affichage
     show_time(str);
+}
+
+void show_time(const char *chaine)
+{
+    uint32_t x = 79 - strlen(chaine);
+    uint32_t y = 0;
+    place_curseur(y, x);
+    printf("%s", chaine);
 }
 
 void wait_clock(unsigned long clock)

@@ -39,8 +39,8 @@ void kernel_start(void)
 	{
 		printf("start\n");
 		// initialisations
-		init_traitant_IT(32, tic_PIT); // initialisation traitant 32
-		masque_IRQ(0, 0);			   // démasquer l'IRQ 0
+		init_traitant_IT(32, traitant_IT_32); // initialisation traitant 32
+		masque_IRQ(0, 0);					  // démasquer l'IRQ 0
 		// démasquage des interruptions externes
 		sti();
 	}

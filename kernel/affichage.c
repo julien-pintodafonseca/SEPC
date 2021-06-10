@@ -136,11 +136,3 @@ void console_putbytes(char *chaine, int32_t taille)
         traite_car(chaine[i]);
     }
 }
-
-void show_time(const char *chaine)
-{
-    uint32_t x = NB_COL - strlen(chaine);
-    uint32_t y = 0;
-    place_curseur(y, x);
-    printf("%s", chaine);
-}
