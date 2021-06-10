@@ -8,14 +8,6 @@
 #include "test/processus-test2.c"
 #include "horloge.h"
 
-int fact(int n)
-{
-	if (n < 2)
-		return 1;
-
-	return n * fact(n - 1);
-}
-
 void kernel_start(void)
 {
 	/* variables de tests */
@@ -39,8 +31,10 @@ void kernel_start(void)
 	{
 		printf("start\n");
 		// initialisations
-		masque_IRQ(0, 0);					  // démasquer l'IRQ 0
-		init_traitant_IT(32, traitant_IT_32); // initialisation traitant 32
+		unsigned long quartz, ticks;
+		clock_settings(&quartz, &ticks);	  // réglade de l'horloge
+		masque_IRQ(0, 0);					  // démasquage de l'IRQ 0
+		init_traitant_IT(32, traitant_IT_32); // initialisation du traitant 32
 		sti();								  // démasquage des interruptions externes
 	}
 
