@@ -1,5 +1,5 @@
 /* Test 1 des processus : idle_t1 passe la main à proc1_t1 */
-#include "../processus.h"
+#include "processus.h"
 
 struct processus file[NBPROC];
 

@@ -30,9 +30,7 @@ void kernel_start(void)
 	if (processusT2)
 		processusTest2();
 	if (horlogeT)
-	{
 		horlogeTest();
-	}
 
 	// boucle d'attente
 	while (1)
