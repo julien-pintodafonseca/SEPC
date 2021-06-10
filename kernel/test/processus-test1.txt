@@ -1,0 +1,3 @@
+[idle] je tente de passer la main a proc1...
+[proc1] idle m'a donne la main
+[proc1] j'arrete le systeme

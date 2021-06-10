@@ -4,7 +4,8 @@
 #include "stdio.h"
 
 #include "test/affichage-test.c"
-#include "affichage.h"
+#include "test/processus-test1.c"
+#include "test/processus-test2.c"
 #include "horloge.h"
 
 int fact(int n)
@@ -19,19 +20,30 @@ void kernel_start(void)
 {
 	/* variables de tests */
 	bool affichageT = 0;
+	bool processusT1 = 0;
+	bool processusT2 = 0;
+	bool horlogeT = 1;
 
 	/* initialisation */
-	// call_debugger(); 			// useless with qemu -s -S
-	efface_ecran(); 				// efface l'écran
-	init_traitant_IT(32, tic_PIT);	// initialisation traitant 32
-	masque_IRQ(0, 1);				// masque l'IRQ 0
+	//call_debugger(); // useless with qemu -s -S
+	efface_ecran(); // efface l'écran
 
 	/* tests */
 	if (affichageT)
 		affichageTest();
-
-	// démasquage des interruptions externes
-	sti(); // TODO : temporaire, à supprimer et à rajouter dans les fichiers de tests une fois ok
+	if (processusT1)
+		processusTest1();
+	if (processusT2)
+		processusTest2();
+	if (horlogeT)
+	{
+		printf("start\n");
+		// initialisations
+		init_traitant_IT(32, tic_PIT); // initialisation traitant 32
+		masque_IRQ(0, 0);			   // démasquer l'IRQ 0
+		// démasquage des interruptions externes
+		sti();
+	}
 
 	// boucle d'attente
 	while (1)
