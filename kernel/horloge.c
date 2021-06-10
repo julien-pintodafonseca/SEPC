@@ -8,17 +8,17 @@
 #include "affichage.h"
 #include "horloge.h"
 
-uint64_t *idt = (uint64_t *)(0x1000); // table des vecteurs d'interruption (=> longueur 256)
-const int CLOCKFREQ = 50;             // fréquence d'interruption, entre 100Hz et 1000Hz
+uint32_t *idt = (uint32_t *)(0x1000); // table des vecteurs d'interruption (=> longueur 256)
+const int CLOCKFREQ = 300;            // fréquence d'interruption, entre 100Hz et 1000Hz
 unsigned long clock = 0;              // nombre d'interruptions
 
 void init_traitant_IT(int32_t num_IT, void (*traitant)(void))
 {
     uint32_t w1 = (KERNEL_CS << 16) + ((uint32_t)traitant & 0x0000FFFF);
     uint32_t w2 = ((uint32_t)traitant & 0xFFFF0000) + (0x8E00);
-    uint64_t *adr = (uint64_t *)(&idt + num_IT * sizeof(uint64_t));
+    uint32_t *adr = (uint32_t *)(&idt + num_IT * 2);
     *adr = w1;
-    *(adr + sizeof(uint32_t)) = w2;
+    *(adr + 1) = w2;
 
     printf("KERNEL_CS   %.4x\n", KERNEL_CS);
     printf("traitant    %.8x\n", (uint32_t)(traitant));
@@ -34,7 +34,6 @@ void clock_settings(unsigned long *quartz, unsigned long *ticks)
 {
     *quartz = 0x1234DD;                   // fréquence d'oscillation du quartz
     *ticks = (*quartz / CLOCKFREQ) % 256; // nombre d'oscillations du quartz entre chaque interruption
-    // ici ???
     outb(0x34, 0x43);
     outb(*ticks, 0x40);
     outb(*ticks >> 8, 0x40);
@@ -43,20 +42,20 @@ void clock_settings(unsigned long *quartz, unsigned long *ticks)
 void tic_PIT(void)
 {
     outb(0x20, 0x20); // acquittement de l'interruption
-    clock++;          // Toutes les 20ms
+    clock++;
 
     char str[256];
-    unsigned long cur_clock = current_clock();
-    unsigned long hours = 0;                               // TODO calculer correctement
-    unsigned long minutes = 0;                             // TODO calculer correctement
-    unsigned long secondes = cur_clock;                    // TODO calculer correctement
-    sprintf(str, "%ld:%ld:%ld", hours, minutes, secondes); // TODO améliorer affichage
+    unsigned long clk = current_clock();
+    unsigned long secondes = (clk * 1) % 60;
+    unsigned long hours = 0;
+    unsigned long minutes = 0;
+    sprintf(str, "%ld:%ld:%ld", hours, minutes, secondes);
     show_time(str);
 }
 
 void show_time(const char *chaine)
 {
-    uint32_t x = 79 - strlen(chaine);
+    uint32_t x = 80 - strlen(chaine);
     uint32_t y = 0;
     place_curseur(y, x);
     printf("%s", chaine);
