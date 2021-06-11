@@ -1,9 +1,13 @@
 #ifndef __START_H__
 #define __START_H__
 
+#include "stdbool.h"
+
 #define FIRST_STACK_SIZE 16384
 
 #ifndef ASSEMBLER
+
+bool is_timer_printed;
 
 extern char first_stack[FIRST_STACK_SIZE];
 

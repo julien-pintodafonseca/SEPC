@@ -8,6 +8,8 @@
 #include "test/processus-test2.c"
 #include "test/horloge-test.c"
 
+bool is_timer_printed = 0;
+
 void kernel_start(void)
 {
 	/* variables de tests */

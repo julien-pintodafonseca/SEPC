@@ -1,5 +1,7 @@
 #include "stdio.h"
 #include "console.h"
+
+#include "start.h"
 #include "affichage.h"
 
 void affichageTest(void)
