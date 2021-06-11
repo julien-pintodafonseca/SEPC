@@ -7,11 +7,14 @@
 
 #include "affichage.h"
 #include "horloge.h"
+#include "processus.h"
 
 uint32_t *idt = (uint32_t *)(0x1000); // table des vecteurs d'interruption (longueur 256)
 const int CLOCKFREQ = 300;            // fréquence d'interruption (entre 100Hz et 1000Hz)
-unsigned long clock = 0;              // nombre d'interruptions
+unsigned long clk = 0;                // nombre d'interruptions
 unsigned long sec = 0;                // nombre de secondes
+
+struct sleeping_procs sleeping_file_procs[NBPROC]; // liste des processus endormis
 
 void init_traitant_IT(int32_t num_IT, void (*traitant)(void))
 {
@@ -29,13 +32,17 @@ void clock_settings(unsigned long *quartz, unsigned long *ticks)
     outb(0x34, 0x43);
     outb(*ticks % 256, 0x40);
     outb(*ticks >> 8, 0x40);
+
+    init_sleeping_file_procs(); // initialise la liste des processus endormis
 }
 
 void tic_PIT(void)
 {
     outb(0x20, 0x20); // acquittement de l'interruption
-    clock++;          // on compte l'interruption
-    if (clock % CLOCKFREQ == 0)
+    clk++;            // on compte l'interruption
+
+    /* mise à jour de l'horloge */
+    if (clk % CLOCKFREQ == 0)
     {
         sec++; // on compte une seconde
         char str[256];
@@ -45,6 +52,9 @@ void tic_PIT(void)
         sprintf(str, "%.2ld:%.2ld:%.2ld", hours, minutes, secondes);
         print_time(str);
     }
+
+    /* vérification processus endormi */
+    check_if_need_wake_up();
 }
 
 void print_time(const char *chaine)
@@ -58,13 +68,6 @@ void print_time(const char *chaine)
     }
 }
 
-void wait_clock(unsigned long clock)
-{
-    // Passe le processus dans l'état endormi
-    // attend le nombre d'interruptions en param atteint ou dépassé
-    printf("wait_clock(%ld)", clock); // TODO plus tard
-}
-
 void masque_IRQ(uint32_t num_IRQ, bool masque)
 {
     uint8_t actual_mask = inb(0x21);
@@ -74,7 +77,64 @@ void masque_IRQ(uint32_t num_IRQ, bool masque)
 
 unsigned long current_clock()
 {
-    return clock;
+    return clk;
+}
+
+void wait_clock(unsigned long clock)
+{
+    asleep_proc(proc_actif, clock);
+}
+
+void init_sleeping_file_procs()
+{
+    for (int i = 0; i < NBPROC; i++)
+    {
+        sleeping_file_procs[i].pid_wait = -1;
+        sleeping_file_procs[i].clk_wait = -1;
+    }
+}
+
+void asleep_proc(int pid, unsigned long clock)
+{
+    if (file_procs[proc_actif]->etat == ACTIF)
+        file_procs[proc_actif]->etat = ENDORMI;
+    else
+        return; // err
+
+    int i = 0;
+    while (sleeping_file_procs[i].pid_wait != -1)
+    {
+        if (i >= NBPROC)
+            return; // err
+        i++;
+    }
+    sleeping_file_procs[i].pid_wait = pid;
+    sleeping_file_procs[i].clk_wait = clock;
+}
+
+void check_if_need_wake_up()
+{
+    for (int i = 0; i < NBPROC; i++)
+    {
+        if (clk >= sleeping_file_procs[i].clk_wait)
+        {
+            awake_proc(sleeping_file_procs[i].pid_wait);
+        }
+    }
+}
+
+void awake_proc(int pid)
+{
+    int i = 0;
+    while (sleeping_file_procs[i].pid_wait != pid)
+    {
+        if (i >= NBPROC)
+            return; // err
+        i++;
+    }
+    file_procs[getproc(pid)]->etat = ACTIVABLE;
+    sleeping_file_procs[i].pid_wait = -1;
+    sleeping_file_procs[i].clk_wait = -1;
 }
 
 /* Attend pendant le nombre de secondes waitsec */

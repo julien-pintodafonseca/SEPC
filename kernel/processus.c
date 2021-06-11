@@ -5,15 +5,11 @@
 #include "stdbool.h"
 #include "horloge.h"
 
-struct processus procs[NBPROC];
-struct processus *file[NBPROC];
-int proc_actif;
-
 void context_switch(int old, int new)
 {
-    file[old]->etat = ACTIVABLE;
-    file[new]->etat = ACTIF;
-    ctx_sw(file[old]->zone_sauv, file[new]->zone_sauv);
+    file_procs[old]->etat = ACTIVABLE;
+    file_procs[new]->etat = ACTIF;
+    ctx_sw(file_procs[old]->zone_sauv, file_procs[new]->zone_sauv);
 }
 
 int pidlibre(void)
@@ -40,7 +36,7 @@ int start(int (*pt_func)(void *), unsigned long ssize, int prio, const char *nam
 {
     int i;
     struct processus *tmp;
-    for (i = 0; i < NBPROC && file[i] != NULL; i++)
+    for (i = 0; i < NBPROC && file_procs[i] != NULL; i++)
         ;
     if (i >= NBPROC)
         return -1;
@@ -52,21 +48,21 @@ int start(int (*pt_func)(void *), unsigned long ssize, int prio, const char *nam
     procs[pid].prio = prio;
     procs[pid].zone_sauv[1] = (int)(&procs[pid].pile[ssize]);
     procs[pid].pile[ssize] = (int)(pt_func);
-    file[i] = &procs[pid];
+    file_procs[i] = &procs[pid];
     // On remonte le processus tant que sa priorité
     // est supérieure au processus précédent dans la file
     int j = i;
     for (; i >= 1; i--)
     {
-        if (file[i - 1]->prio < file[i]->prio)
+        if (file_procs[i - 1]->prio < file_procs[i]->prio)
         {
-            tmp = file[i - 1];
-            file[i - 1] = file[i];
-            file[i] = tmp;
+            tmp = file_procs[i - 1];
+            file_procs[i - 1] = file_procs[i];
+            file_procs[i] = tmp;
             j = i - 1;
         }
     }
-    return file[j]->pid;
+    return file_procs[j]->pid;
 }
 
 void exit(int retval)
@@ -95,7 +91,7 @@ int waitpid(int pid, int *retvalp)
 int getproc(int pid)
 {
     int i;
-    for (i = 0; i < NBPROC && file[i]->pid != pid; i++)
+    for (i = 0; i < NBPROC && file_procs[i]->pid != pid; i++)
         ;
     return i;
 }
@@ -106,7 +102,7 @@ int getprio(int pid) // TODO VERIFIER
     {
         return -1; // PID invalide
     }
-    return file[getproc(pid)]->prio;
+    return file_procs[getproc(pid)]->prio;
 }
 
 int chprio(int pid, int newprio) // TODO VERIFIER
@@ -120,13 +116,13 @@ int chprio(int pid, int newprio) // TODO VERIFIER
         return -2; // newprio invalide
     }
     int oldprio = getprio(pid);
-    file[getproc(pid)]->prio = newprio;
+    file_procs[getproc(pid)]->prio = newprio;
     return oldprio;
 }
 
 int getpid(void)
 {
-    return file[proc_actif]->pid;
+    return file_procs[proc_actif]->pid;
 }
 
 // TEST
@@ -136,7 +132,7 @@ void ordonnance(void)
     int old;
     old = proc_actif;
     proc_actif++;
-    if (proc_actif >= NBPROC || file[proc_actif]->prio < file[old]->prio)
+    if (proc_actif >= NBPROC || file_procs[proc_actif]->prio < file_procs[old]->prio)
     {
         proc_actif = 0;
     }
@@ -209,7 +205,7 @@ void init_processus(void)
     procs[0].prio = MAXPRIO;
     procs[0].zone_sauv[1] = (int)(&procs[0].pile[TAILLE_PILE - 1]);
     procs[0].pile[TAILLE_PILE - 1] = (int)(idle);
-    file[0] = &procs[0];
+    file_procs[0] = &procs[0];
     if (start((int (*)(void *))(proc1), TAILLE_PILE - 1, MAXPRIO, "proc1") == -1)
         printf("erreur start proc1\n");
     if (start((int (*)(void *))(proc2), TAILLE_PILE - 1, MAXPRIO - 1, "proc2") == -1)
