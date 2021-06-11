@@ -3,6 +3,9 @@
 
 #include "stdint.h"
 
+#define NB_LIG 25
+#define NB_COL 80
+
 uint32_t getx(void);
 uint32_t gety(void);
 uint16_t *ptr_mem(uint32_t lig, uint32_t col);

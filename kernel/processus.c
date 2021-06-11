@@ -1,13 +1,15 @@
 /* Phase 2 : Traitement de l'horloge et des processus */
 #include "stdio.h"
-#include "cpu.h"
-#include "processus.h"
 #include "stdbool.h"
+#include "cpu.h"
+
+#include "processus.h"
 #include "horloge.h"
 
 void context_switch(int old, int new)
 {
-    file_procs[old]->etat = ACTIVABLE;
+    if (file_procs[old]->etat == ACTIF)
+        file_procs[old]->etat = ACTIVABLE;
     file_procs[new]->etat = ACTIF;
     ctx_sw(file_procs[old]->zone_sauv, file_procs[new]->zone_sauv);
 }
@@ -21,7 +23,7 @@ int pidlibre(void)
         exist = false;
         for (int i = -1; i < NBPROC; i++)
         {
-            if (procs[i].pid == pid)
+            if (procs[i].pid == pid && procs[i].etat != ZOMBIE)
                 exist = true;
         }
     }
@@ -31,8 +33,29 @@ int pidlibre(void)
     return pid;
 }
 
+void ordonnance(void)
+{
+    int old;
+    old = proc_actif;
+    do
+    {
+        proc_actif++;
+        if (proc_actif >= NBPROC || file_procs[proc_actif]->prio < file_procs[old]->prio)
+        {
+            proc_actif = 0;
+        }
+    } while (file_procs[proc_actif]->etat != ACTIVABLE);
+    context_switch(old, proc_actif);
+}
+
+void exit_procs(void)
+{
+    file_procs[proc_actif]->etat = ZOMBIE;
+    ordonnance();
+}
+
 /* Primitives de processus */
-int start(int (*pt_func)(void *), unsigned long ssize, int prio, const char *name) //, void *arg)
+int start(int (*pt_func)(void *), unsigned long ssize, int prio, const char *name, void *arg)
 {
     int i;
     struct processus *tmp;
@@ -46,8 +69,10 @@ int start(int (*pt_func)(void *), unsigned long ssize, int prio, const char *nam
     sprintf(procs[i].nom, "%s", name);
     procs[pid].etat = ACTIVABLE;
     procs[pid].prio = prio;
-    procs[pid].zone_sauv[1] = (int)(&procs[pid].pile[ssize]);
-    procs[pid].pile[ssize] = (int)(pt_func);
+    procs[pid].zone_sauv[1] = (int)(&procs[pid].pile[ssize - 2]);
+    procs[pid].pile[ssize - 2] = (int)(pt_func);
+    procs[pid].pile[ssize - 1] = (int)(exit_procs);
+    procs[pid].pile[ssize] = (int)(arg);
     file_procs[i] = &procs[pid];
     // On remonte le processus tant que sa priorité
     // est supérieure au processus précédent dans la file
@@ -68,6 +93,7 @@ int start(int (*pt_func)(void *), unsigned long ssize, int prio, const char *nam
 void exit(int retval)
 {
     // TODO
+    file_procs[proc_actif]->etat = ZOMBIE;
     printf("%d", retval);
     while (1)
         ;
@@ -127,26 +153,14 @@ int getpid(void)
 
 // TEST
 
-void ordonnance(void)
-{
-    int old;
-    old = proc_actif;
-    proc_actif++;
-    if (proc_actif >= NBPROC || file_procs[proc_actif]->prio < file_procs[old]->prio)
-    {
-        proc_actif = 0;
-    }
-    context_switch(old, proc_actif);
-}
-
 void idle(void)
 {
     for (;;)
     {
-        sleep(2);
         printf("[idle] pid = %i\n", getpid());
         for (int i = 0; i < 100000000; i++)
             ;
+        wait_clock(current_clock() + 5 * CLOCKFREQ);
         ordonnance();
     }
 }
@@ -158,6 +172,7 @@ void proc1(void)
         printf("[proc1] pid = %i\n", getpid());
         for (int i = 0; i < 100000000; i++)
             ;
+        wait_clock(current_clock() + 20 * CLOCKFREQ);
         ordonnance();
     }
 }
@@ -169,6 +184,7 @@ void proc2(void)
         printf("[proc2] pid = %i\n", getpid());
         for (int i = 0; i < 100000000; i++)
             ;
+        wait_clock(current_clock() + 10 * CLOCKFREQ);
         ordonnance();
     }
 }
@@ -180,6 +196,7 @@ void proc3(void)
         printf("[proc3] pid = %i\n", getpid());
         for (int i = 0; i < 100000000; i++)
             ;
+        wait_clock(current_clock() + 15 * CLOCKFREQ);
         ordonnance();
     }
 }
@@ -188,7 +205,7 @@ void proc4(void)
 {
     for (int i = 0; i < 2; i++)
     {
-        printf("[processus 1] pid = %i\n", getpid());
+        printf("%d -> [proc4] pid = %i\n", i, getpid());
         sleep(2);
     }
 }
@@ -206,10 +223,12 @@ void init_processus(void)
     procs[0].zone_sauv[1] = (int)(&procs[0].pile[TAILLE_PILE - 1]);
     procs[0].pile[TAILLE_PILE - 1] = (int)(idle);
     file_procs[0] = &procs[0];
-    if (start((int (*)(void *))(proc1), TAILLE_PILE - 1, MAXPRIO, "proc1") == -1)
+    if (start((int (*)(void *))(proc1), TAILLE_PILE - 1, MAXPRIO, "proc1", NULL) == -1)
         printf("erreur start proc1\n");
-    if (start((int (*)(void *))(proc2), TAILLE_PILE - 1, MAXPRIO - 1, "proc2") == -1)
+    if (start((int (*)(void *))(proc2), TAILLE_PILE - 1, MAXPRIO, "proc2", NULL) == -1)
         printf("erreur start proc2\n");
-    if (start((int (*)(void *))(proc3), TAILLE_PILE - 1, MAXPRIO, "proc3") == -1)
+    if (start((int (*)(void *))(proc3), TAILLE_PILE - 1, MAXPRIO, "proc3", NULL) == -1)
         printf("erreur start proc3\n");
+    if (start((int (*)(void *))(proc4), TAILLE_PILE - 1, MAXPRIO, "proc4", NULL) == -1)
+        printf("erreur start proc4\n");
 }

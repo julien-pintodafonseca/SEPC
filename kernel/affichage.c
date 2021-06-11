@@ -6,8 +6,7 @@
 #include "string.h"
 #include "stdio.h"
 
-#define NB_LIG 25
-#define NB_COL 80
+#include "affichage.h"
 
 uint32_t x = 0; // ligne
 uint32_t y = 0; // colonne

@@ -10,7 +10,6 @@
 #include "processus.h"
 
 uint32_t *idt = (uint32_t *)(0x1000); // table des vecteurs d'interruption (longueur 256)
-const int CLOCKFREQ = 300;            // fréquence d'interruption (entre 100Hz et 1000Hz)
 unsigned long clk = 0;                // nombre d'interruptions
 unsigned long sec = 0;                // nombre de secondes
 
@@ -59,7 +58,7 @@ void tic_PIT(void)
 
 void print_time(const char *chaine)
 {
-    uint32_t x = 80 - strlen(chaine);
+    uint32_t x = NB_COL - strlen(chaine);
     uint32_t y = 0;
     for (int i = 0; i < (int)(strlen(chaine)); i++)
     {

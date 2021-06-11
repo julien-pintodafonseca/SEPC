@@ -6,11 +6,9 @@
 #define TAILLE_NOM 20
 #define TAILLE_SAUV 5
 #define TAILLE_PILE 512
-#define NBPROC 4
+#define NBPROC 5
 #define MAXPRIO 256
 #define SCHEDFREQ 100 // Hz
-
-extern void ctx_sw(int *, int *);
 
 typedef enum ETAT
 {
@@ -37,8 +35,10 @@ struct processus procs[NBPROC];
 struct processus *file_procs[NBPROC];
 int proc_actif;
 
+extern void ctx_sw(int *, int *);
+
 void context_switch(int old, int new);
-int start(int (*pt_func)(void *), unsigned long ssize, int prio, const char *name); //, void *arg);
+int start(int (*pt_func)(void *), unsigned long ssize, int prio, const char *name, void *arg);
 void exit(int retval);
 int kill(int pid);
 int waitpid(int pid, int *retvalp);

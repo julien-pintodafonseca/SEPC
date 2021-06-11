@@ -3,6 +3,8 @@
 
 #include "stdint.h"
 
+#define CLOCKFREQ 300 // fréquence d'interruption (entre 100Hz et 1000Hz)
+
 struct sleeping_procs
 {
     int pid_wait;           // pid
