@@ -51,8 +51,11 @@ void print_time(const char *chaine)
 {
     uint32_t x = 80 - strlen(chaine);
     uint32_t y = 0;
-    place_curseur(y, x);
-    printf("%s", chaine);
+    for (int i = 0; i < (int)(strlen(chaine)); i++)
+    {
+        ecrit_car(y, x, chaine[i]);
+        x++;
+    }
 }
 
 void wait_clock(unsigned long clock)
@@ -72,4 +75,12 @@ void masque_IRQ(uint32_t num_IRQ, bool masque)
 unsigned long current_clock()
 {
     return clock;
+}
+
+/* Attend pendant le nombre de secondes waitsec */
+void sleep(int waitsec)
+{
+    unsigned long cur = sec;
+    while (sec < cur + waitsec)
+        ;
 }

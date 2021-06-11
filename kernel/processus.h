@@ -34,7 +34,7 @@ struct processus
 };
 
 void context_switch(int old, int new);
-int start(int (*pt_func)(void *), unsigned long ssize, int prio, const char *name, void *arg);
+int start(int (*pt_func)(void *), unsigned long ssize, int prio, const char *name); //, void *arg);
 void exit(int retval);
 int kill(int pid);
 int waitpid(int pid, int *retvalp);

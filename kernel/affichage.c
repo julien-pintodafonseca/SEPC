@@ -12,6 +12,16 @@
 uint32_t x = 0; // ligne
 uint32_t y = 0; // colonne
 
+uint32_t getx(void)
+{
+    return x;
+}
+
+uint32_t gety(void)
+{
+    return y;
+}
+
 /* 
     Retourne un pointeur sur la zone mémoire correspondant
     à la case de la console ligne lig et colonne col

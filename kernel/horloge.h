@@ -11,6 +11,7 @@ void tic_PIT(void);
 void print_time(const char *chaine);
 void wait_clock(unsigned long clock);
 void masque_IRQ(uint32_t num_IRQ, bool masque);
-unsigned long current_clock();
+unsigned long current_clock(void);
+void sleep(int waitsec);
 
 #endif /* HORLOGE_H_ */

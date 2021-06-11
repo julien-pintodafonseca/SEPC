@@ -15,7 +15,7 @@ void kernel_start(void)
 	bool affichageT = 0;
 	bool processusT1 = 0;
 	bool processusT2 = 0;
-	bool horlogeT = 0;
+	bool horlogeT = 1;
 
 	/* initialisation */
 	//call_debugger(); 				 // useless with qemu -s -S
