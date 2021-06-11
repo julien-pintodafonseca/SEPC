@@ -6,7 +6,7 @@
 #define TAILLE_NOM 20
 #define TAILLE_SAUV 5
 #define TAILLE_PILE 512
-#define NBPROC 2
+#define NBPROC 4
 #define MAXPRIO 256
 #define SCHEDFREQ 100 // Hz
 
@@ -26,14 +26,14 @@ typedef enum ETAT
 struct processus
 {
     int pid;
-    char *nom;
+    char nom[TAILLE_NOM];
     ETAT etat;
+    int prio;
     int zone_sauv[TAILLE_SAUV];
     int pile[TAILLE_PILE];
 };
 
 void context_switch(int old, int new);
-/*
 int start(int (*pt_func)(void *), unsigned long ssize, int prio, const char *name, void *arg);
 void exit(int retval);
 int kill(int pid);
@@ -42,6 +42,8 @@ int getprio(int pid);
 int chprio(int pid, int newprio);
 int getpid(void);
 int getproc(int pid);
-*/
+
+void init_processus(void);
+void idle(void);
 
 #endif /* PROCESSUS_H_ */

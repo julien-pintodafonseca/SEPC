@@ -19,11 +19,11 @@ void proc1_t1(void) // pid 1
 void init_processus_t1(void)
 {
     file[0].pid = 0;
-    file[0].nom = "idle";
+    sprintf(file[0].nom, "%p", "idle");
     file[0].etat = ACTIF;
 
     file[1].pid = 1;
-    file[1].nom = "proc1";
+    sprintf(file[1].nom, "%p", "proc1");
     file[1].etat = ACTIVABLE;
     file[1].zone_sauv[1] = (int)(&file[1].pile[TAILLE_PILE - 1]);
     file[1].pile[TAILLE_PILE - 1] = (int)(proc1_t1);
