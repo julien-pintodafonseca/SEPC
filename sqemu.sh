@@ -1,4 +1,4 @@
 #!/bin/bash
 make clean
 make
-qemu-system-i386 -m 256M -kernel kernel/kernel.bin
+qemu-system-i386 -m 64M -kernel kernel/kernel.bin

@@ -13,8 +13,6 @@ uint32_t *idt = (uint32_t *)(0x1000); // table des vecteurs d'interruption (long
 unsigned long clk = 0;                // nombre d'interruptions
 unsigned long sec = 0;                // nombre de secondes
 
-struct sleeping_procs sleeping_file_procs[NBPROC]; // liste des processus endormis
-
 void init_traitant_IT(int32_t num_IT, void (*traitant)(void))
 {
     uint32_t w1 = (KERNEL_CS << 16) + ((uint32_t)traitant & 0x0000FFFF);
@@ -32,14 +30,14 @@ void clock_settings(unsigned long *quartz, unsigned long *ticks)
     outb(*ticks % 256, 0x40);
     outb(*ticks >> 8, 0x40);
 
-    init_sleeping_file_procs(); // initialise la liste des processus endormis
+    init_sleeping_file_procs();    // initialise la liste des processus endormis
+    init_bloque_fils_file_procs(); // initialise la liste des processus attendant un fils
 }
 
 void tic_PIT(void)
 {
     outb(0x20, 0x20); // acquittement de l'interruption
     clk++;            // on compte l'interruption
-
     /* mise à jour de l'horloge */
     if (clk % CLOCKFREQ == 0)
     {
@@ -52,8 +50,15 @@ void tic_PIT(void)
         print_time(str);
     }
 
-    /* vérification processus endormi */
-    check_if_need_wake_up();
+    if (clk % (CLOCKFREQ / SCHEDFREQ) == 0)
+    {
+        /* vérification processus endormi */
+        check_if_need_wake_up();
+        /* vérification processus attendant un fils */
+        check_if_child_is_end();
+        /* changement de processus actif */
+        ordonnance();
+    }
 }
 
 void print_time(const char *chaine)
@@ -93,6 +98,15 @@ void init_sleeping_file_procs()
     }
 }
 
+void init_bloque_fils_file_procs()
+{
+    for (int i = 0; i < NBPROC; i++)
+    {
+        bloque_fils_file_procs[i].pid_pere = -1;
+        bloque_fils_file_procs[i].pid_fils = -1;
+    }
+}
+
 void asleep_proc(int pid, unsigned long clock)
 {
     if (file_procs[proc_actif]->etat == ACTIF)
@@ -122,6 +136,39 @@ void check_if_need_wake_up()
     }
 }
 
+void check_if_child_is_end()
+{
+    for (int i = 0; i < NBPROC; i++)
+    {
+        if (bloque_fils_file_procs[i].pid_pere != -1)
+        {
+            if (bloque_fils_file_procs[i].pid_fils >= 0)
+            {
+                if (file_procs[getproc(bloque_fils_file_procs[i].pid_fils)]->etat == ZOMBIE)
+                {
+                    // le fils est fini
+                    file_procs[getproc(bloque_fils_file_procs[i].pid_pere)]->etat = ACTIVABLE;
+                    bloque_fils_file_procs[i].pid_pere = -1;
+                    bloque_fils_file_procs[i].pid_fils = -1;
+                }
+            }
+            else
+            {
+                for (int j = 0; j < NBPROC || file_procs[proc_actif]->fils[j] == -1 || file_procs[getproc(file_procs[proc_actif]->fils[j])]->etat != ZOMBIE; j++)
+                {
+                    if (file_procs[proc_actif]->fils[j] != -1 && file_procs[getproc(file_procs[proc_actif]->fils[j])]->etat == ZOMBIE)
+                    {
+                        // il existe un fils qui est déjà fini
+                        file_procs[getproc(bloque_fils_file_procs[i].pid_pere)]->etat = ACTIVABLE;
+                        bloque_fils_file_procs[i].pid_pere = -1;
+                        bloque_fils_file_procs[i].pid_fils = -1;
+                    }
+                }
+            }
+        }
+    }
+}
+
 void awake_proc(int pid)
 {
     int i = 0;
@@ -140,6 +187,8 @@ void awake_proc(int pid)
 void sleep(int waitsec)
 {
     unsigned long cur = sec;
+    sti();
     while (sec < cur + waitsec)
         ;
+    cli();
 }

@@ -1,16 +1,13 @@
 #ifndef KEYBOARD_GLUE_H
 #define KEYBOARD_GLUE_H
 
-
-/* Symbols defined in kbd_linux.o, to call in client kernel. */
+/* Symbols defined in kbd_linux.o, to call in ent kernel. */
 int keyboard_init(void);
 void keyboard_handle_scancode(unsigned char scancode, int down);
-
 
 /* Symbols called by keyboard-glue.c, to define in client kernel. */
 extern void keyboard_data(char *str);
 extern void kbd_leds(unsigned char leds);
-
 
 /* Symbols defined in keyboard-glue.c, called by kbd_linux.o */
 extern void keyboard_pckbd_leds(unsigned char leds);
