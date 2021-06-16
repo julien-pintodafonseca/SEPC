@@ -110,7 +110,7 @@ void exit(int retval)
 int kill(int pid)
 {
     int proc = getproc(pid);
-    if (proc == -1) // PID invalide
+    if (proc == -1 || file_procs[proc]->etat == ZOMBIE) // PID invalide
         return -1;
     if (file_procs[proc]->etat == ENDORMI)
     {
@@ -319,36 +319,30 @@ int chprio(int pid, int newprio)
     file_procs[p]->prio = newprio;
     struct processus *tmp;
     // On réajuste la place du processus dans la file d'attente
-    if (p != 0 && file_procs[p - 1]->prio < file_procs[p]->prio)
+    for (; p >= 1; p--)
     {
-        for (; p >= 1; p--)
+        if (file_procs[p - 1] != NULL && file_procs[p] != NULL && file_procs[p - 1]->pid != -1 && file_procs[p - 1]->prio < file_procs[p]->prio)
         {
-            if (file_procs[p - 1]->prio < file_procs[p]->prio)
-            {
-                if (proc_actif == p)
-                    proc_actif--;
-                else if (proc_actif == p - 1)
-                    proc_actif++;
-                tmp = file_procs[p - 1];
-                file_procs[p - 1] = file_procs[p];
-                file_procs[p] = tmp;
-            }
+            if (proc_actif == p)
+                proc_actif--;
+            else if (proc_actif == p - 1)
+                proc_actif++;
+            tmp = file_procs[p - 1];
+            file_procs[p - 1] = file_procs[p];
+            file_procs[p] = tmp;
         }
     }
-    else
+    for (; p < NBPROC - 1; p++)
     {
-        for (; p < NBPROC - 1; p++)
+        if (file_procs[p + 1] != NULL && file_procs[p] != NULL && file_procs[p + 1]->pid != -1 && file_procs[p + 1]->prio >= file_procs[p]->prio)
         {
-            if (file_procs[p + 1] != NULL && file_procs[p] != NULL && file_procs[p + 1]->pid != -1 && file_procs[p + 1]->prio >= file_procs[p]->prio)
-            {
-                if (proc_actif == p)
-                    proc_actif++;
-                else if (proc_actif == p + 1)
-                    proc_actif--;
-                tmp = file_procs[p + 1];
-                file_procs[p + 1] = file_procs[p];
-                file_procs[p] = tmp;
-            }
+            if (proc_actif == p)
+                proc_actif++;
+            else if (proc_actif == p + 1)
+                proc_actif--;
+            tmp = file_procs[p + 1];
+            file_procs[p + 1] = file_procs[p];
+            file_procs[p] = tmp;
         }
     }
     ordonnance();
