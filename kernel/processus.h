@@ -47,9 +47,6 @@ extern void ctx_sw(int *, int *);
 #include "processus.h"
 #include "horloge.h"
 
-// TODO Changement d'état => ordonnance
-// TODO prio à l'ext du noyau ?
-
 void context_switch(int old, int new);
 int pidlibre(void);
 void ordonnance(void);

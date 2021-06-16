@@ -32,58 +32,77 @@ void kernel_start(void)
 		processusTest2();
 
 	/*******************************************************************************
-	 * Test 2
+	 * Test 3
 	 *
-	 * kill() de fils suspendu pas demarre
-	 * waitpid() de ce fils termine par kill()
-	 * waitpid() de fils termine par exit()
+	 * chprio() et ordre de scheduling
+	 * kill() d'un processus qui devient moins prioritaire
 	 ******************************************************************************/
-	int dummy2(void *args)
+	int proc_prio4(void *arg)
 	{
-		printf(" X");
-		return (int)args;
+		/* arg = priority of this proc. */
+		int r;
+
+		assert(getprio(getpid()) == (int)arg);
+		printf("1");
+		r = chprio(getpid(), 64);
+		assert(r == (int)arg);
+		printf(" 3");
+		return 0;
 	}
 
-	int dummy2_2(void *args)
+	int proc_prio5(void *arg)
 	{
-		printf(" 5");
-		exit((int)args);
+		/* Arg = priority of this proc. */
+		int r;
+
+		assert(getprio(getpid()) == (int)arg);
+		printf(" 7");
+		r = chprio(getpid(), 64);
+		assert(r == (int)arg);
+		printf("error: I should have been killed\n");
 		assert(0);
 		return 0;
 	}
 
-	void test2(void)
+	void test3(void)
 	{
-		int rval;
-		int r;
 		int pid1;
-		int val = 45;
+		int p = 192;
+		int r;
 
-		printf("1");
-		pid1 = start(dummy2, 4000, 100, "procKill", (void *)val);
+		assert(getprio(getpid()) == 128);
+		pid1 = start(proc_prio4, 4000, p, "prio", (void *)p);
 		assert(pid1 > 0);
 		printf(" 2");
+		r = chprio(getpid(), 32);
+		assert(r == 128);
+		printf(" 4");
+		r = chprio(getpid(), 128);
+		assert(r == 32);
+		printf(" 5");
+		assert(waitpid(pid1, 0) == pid1);
+		printf(" 6");
+
+		assert(getprio(getpid()) == 128);
+		pid1 = start(proc_prio5, 4000, p, "prio", (void *)p);
+		assert(pid1 > 0);
+		printf(" 8");
 		r = kill(pid1);
 		assert(r == 0);
-		printf(" 3");
-		r = waitpid(pid1, &rval);
-		assert(rval == 0);
-		assert(r == pid1);
-		printf(" 4");
-		pid1 = start(dummy2_2, 4000, 192, "procExit", (void *)val);
-		assert(pid1 > 0);
-		printf(" 6");
-		r = waitpid(pid1, &rval);
-		assert(rval == val);
-		assert(r == pid1);
-		assert(waitpid(getpid(), &rval) < 0);
-		printf(" 7.\n");
+		assert(waitpid(pid1, 0) == pid1);
+		printf(" 9");
+		r = chprio(getpid(), 32);
+		assert(r == 128);
+		printf(" 10");
+		r = chprio(getpid(), 128);
+		assert(r == 32);
+		printf(" 11.\n");
 	}
 
 	void idle(void)
 	{
-		if (start((int (*)(void *))(test2), TAILLE_PILE - 1, 130, "test2", NULL) == -1)
-			printf("erreur start test2\n");
+		if (start((int (*)(void *))(test3), TAILLE_PILE - 1, 128, "test3", NULL) == -1)
+			printf("erreur start test3\n");
 
 		for (;;)
 		{

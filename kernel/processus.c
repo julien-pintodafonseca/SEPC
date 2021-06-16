@@ -60,10 +60,7 @@ void ordonnance(void)
             }
         } while (file_procs[proc_actif] == NULL || file_procs[proc_actif]->prio != file_procs[old]->prio || (file_procs[proc_actif]->etat != ACTIVABLE && file_procs[proc_actif]->etat != ACTIF));
     }
-    if (proc_actif != old)
-    {
-        context_switch(old, proc_actif);
-    }
+    context_switch(old, proc_actif);
 }
 
 void exit_proc_actif(void)
@@ -322,20 +319,40 @@ int chprio(int pid, int newprio)
     file_procs[p]->prio = newprio;
     struct processus *tmp;
     // On réajuste la place du processus dans la file d'attente
-    while (file_procs[p - 1]->prio < file_procs[p]->prio)
+    if (p != 0 && file_procs[p - 1]->prio < file_procs[p]->prio)
     {
-        tmp = file_procs[p - 1];
-        file_procs[p - 1] = file_procs[p];
-        file_procs[p] = tmp;
-        p--;
+        for (; p >= 1; p--)
+        {
+            if (file_procs[p - 1]->prio < file_procs[p]->prio)
+            {
+                if (proc_actif == p)
+                    proc_actif--;
+                else if (proc_actif == p - 1)
+                    proc_actif++;
+                tmp = file_procs[p - 1];
+                file_procs[p - 1] = file_procs[p];
+                file_procs[p] = tmp;
+            }
+        }
     }
-    while (file_procs[p + 1]->prio > file_procs[p]->prio)
+    else
     {
-        tmp = file_procs[p + 1];
-        file_procs[p + 1] = file_procs[p];
-        file_procs[p] = tmp;
-        p++;
+        for (; p < NBPROC - 1; p++)
+        {
+            if (file_procs[p + 1] != NULL && file_procs[p + 1]->pid != -1 && file_procs[p + 1]->prio >= file_procs[p]->prio)
+            {
+                if (proc_actif == p)
+                    proc_actif++;
+                else if (proc_actif == p + 1)
+                    proc_actif--;
+                tmp = file_procs[p + 1];
+                file_procs[p + 1] = file_procs[p];
+                file_procs[p] = tmp;
+            }
+        }
     }
+    ordonnance();
+
     return oldprio;
 }
 
