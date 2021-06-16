@@ -110,7 +110,7 @@ void exit(int retval)
 int kill(int pid)
 {
     int proc = getproc(pid);
-    if (proc == -1 || file_procs[proc]->etat == ZOMBIE) // PID invalide
+    if (pid <= 0 || proc == -1 || file_procs[proc]->etat == ZOMBIE) // PID invalide
         return -1;
     if (file_procs[proc]->etat == ENDORMI)
     {
@@ -307,7 +307,7 @@ int getprio(int pid)
 int chprio(int pid, int newprio)
 {
     int p = getproc(pid);
-    if (p == -1)
+    if (p == -1 || file_procs[p]->etat == ZOMBIE)
     {
         return -1; // PID invalide
     }
