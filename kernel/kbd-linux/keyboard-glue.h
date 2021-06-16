@@ -1,7 +1,7 @@
 #ifndef KEYBOARD_GLUE_H
 #define KEYBOARD_GLUE_H
 
-/* Symbols defined in kbd_linux.o, to call in ent kernel. */
+/* Symbols defined in kbd_linux.o, to call in client kernel. */
 int keyboard_init(void);
 void keyboard_handle_scancode(unsigned char scancode, int down);
 

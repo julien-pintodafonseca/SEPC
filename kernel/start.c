@@ -6,7 +6,6 @@
 #include "test/affichage-test.c"
 #include "test/processus-test1.c"
 #include "test/processus-test2.c"
-#define DUMMY_VAL 78
 bool is_timer_printed = 1;
 
 void kernel_start(void)
@@ -33,54 +32,58 @@ void kernel_start(void)
 		processusTest2();
 
 	/*******************************************************************************
-	 * Test 1
+	 * Test 2
 	 *
-	 * Demarrage de processus avec passage de parametre
-	 * Terminaison normale avec valeur de retour
-	 * Attente de terminaison (cas fils avant pere et cas pere avant fils)
+	 * kill() de fils suspendu pas demarre
+	 * waitpid() de ce fils termine par kill()
+	 * waitpid() de fils termine par exit()
 	 ******************************************************************************/
-
-	int dummy1(void *arg)
+	int dummy2(void *args)
 	{
-		printf("1");
-		assert((int)arg == DUMMY_VAL);
-		return 3;
+		printf(" X");
+		return (int)args;
 	}
 
-	int dummy1_2(void *arg)
+	int dummy2_2(void *args)
 	{
 		printf(" 5");
-		assert((int)arg == DUMMY_VAL + 1);
-		return 4;
+		exit((int)args);
+		assert(0);
+		return 0;
 	}
 
-	void test1(void)
+	void test2(void)
 	{
-		int pid1;
-		int r;
 		int rval;
+		int r;
+		int pid1;
+		int val = 45;
 
-		pid1 = start(dummy1, 4000, 192, "paramRetour", (void *)DUMMY_VAL);
+		printf("1");
+		pid1 = start(dummy2, 4000, 100, "procKill", (void *)val);
 		assert(pid1 > 0);
 		printf(" 2");
-		r = waitpid(pid1, &rval);
-		assert(r == pid1);
-		assert(rval == 3);
+		r = kill(pid1);
+		assert(r == 0);
 		printf(" 3");
-		pid1 = start(dummy1_2, 4000, 100, "paramRetour", (void *)(DUMMY_VAL + 1));
-		assert(pid1 > 0);
-		printf(" 4");
 		r = waitpid(pid1, &rval);
+		assert(rval == 0);
 		assert(r == pid1);
-		assert(rval == 4);
-		printf(" 6.\n");
+		printf(" 4");
+		pid1 = start(dummy2_2, 4000, 192, "procExit", (void *)val);
+		assert(pid1 > 0);
+		printf(" 6");
+		r = waitpid(pid1, &rval);
+		assert(rval == val);
+		assert(r == pid1);
+		assert(waitpid(getpid(), &rval) < 0);
+		printf(" 7.\n");
 	}
 
 	void idle(void)
 	{
-
-		if (start((int (*)(void *))(test1), TAILLE_PILE - 1, 130, "test1", NULL) == -1)
-			printf("erreur start test1\n");
+		if (start((int (*)(void *))(test2), TAILLE_PILE - 1, 130, "test2", NULL) == -1)
+			printf("erreur start test2\n");
 
 		for (;;)
 		{

@@ -202,13 +202,10 @@ int start(int (*pt_func)(void *), unsigned long ssize, int prio, const char *nam
             }
         }
     }
+    pid = file_procs[j]->pid; // sauvegarde avant possible modification
     if (prio > file_procs[proc_actif]->prio)
-    {
-        int old = proc_actif;
-        proc_actif = j;
-        context_switch(old, proc_actif); // passer l'exécution au nouveau proc
-    }
-    return file_procs[j]->pid;
+        ordonnance();
+    return pid;
 }
 
 int waitpid(int pid, int *retvalp)
