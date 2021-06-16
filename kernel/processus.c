@@ -339,7 +339,7 @@ int chprio(int pid, int newprio)
     {
         for (; p < NBPROC - 1; p++)
         {
-            if (file_procs[p + 1] != NULL && file_procs[p + 1]->pid != -1 && file_procs[p + 1]->prio >= file_procs[p]->prio)
+            if (file_procs[p + 1] != NULL && file_procs[p] != NULL && file_procs[p + 1]->pid != -1 && file_procs[p + 1]->prio >= file_procs[p]->prio)
             {
                 if (proc_actif == p)
                     proc_actif++;
