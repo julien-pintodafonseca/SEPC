@@ -133,6 +133,10 @@ int kill(int pid)
 /* Primitives de processus */
 int start(int (*pt_func)(void *), unsigned long ssize, int prio, const char *name, void *arg)
 {
+    /*
+    if (ssize > TAILLE_PILE)
+        return -1; // erreur dépassement pile
+    */
     int i;
     struct processus *tmp;
     for (i = 0; i < NBPROC && file_procs[i] != NULL; i++)

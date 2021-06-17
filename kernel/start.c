@@ -32,109 +32,44 @@ void kernel_start(void)
 		processusTest2();
 
 	/*******************************************************************************
-	 * Test 7
+	 * Test 6
 	 *
-	 * Test de l'horloge (ARR et ACE)
-	 * Tentative de determination de la frequence du processeur et de la
-	 * periode de scheduling
+	 * Waitpid multiple.
+	 * Creation de processus avec differentes tailles de piles.
 	 ******************************************************************************/
-	void test_it()
+	extern int __proc6_1(void *arg);
+	extern int __proc6_2(void *arg);
+
+	void test6(void)
 	{
-		__asm__ volatile("pushfl; testl $0x200,(%%esp); jnz 0f; sti; nop; cli; 0: addl $4,%%esp\n" ::
-							 : "memory");
-	}
-
-	int proc_timer1(void *arg)
-	{
-		unsigned long quartz;
-		unsigned long ticks;
-		unsigned long dur;
-		int i;
-
-		(void)arg;
-
-		clock_settings(&quartz, &ticks);
-		dur = (quartz + ticks) / ticks;
-		printf(" 2");
-		for (i = 4; i < 8; i++)
-		{
-			wait_clock(current_clock() + dur);
-			printf(" %d", i);
-		}
-		return 0;
-	}
-
-	volatile unsigned long timer;
-
-	int proc_timer(void *arg)
-	{
-		(void)arg;
-		while (1)
-		{
-			unsigned long t = timer + 1;
-			timer = t;
-			while (timer == t)
-				test_it();
-		}
-		while (1)
-			;
-		return 0;
-	}
-
-	int sleep_pr1(void *args)
-	{
-		(void)args;
-		wait_clock(current_clock() + 2);
-		printf(" not killed !!!");
-		assert(0);
-		return 1;
-	}
-
-	void test7(void)
-	{
-		int pid1, pid2, r;
-		unsigned long c0, c, quartz, ticks, dur;
+		int pid1, pid2, pid3;
+		int ret;
 
 		assert(getprio(getpid()) == 128);
-		printf("1");
-		pid1 = start(proc_timer1, 4000, 129, "timer", 0);
+		pid1 = start(__proc6_1, 0, 64, "proc6_1", 0);
 		assert(pid1 > 0);
-		printf(" 3");
-		assert(waitpid(-1, 0) == pid1);
-		printf(" 8 : ");
-
-		timer = 0;
-		pid1 = start(proc_timer, 4000, 127, "timer1", 0);
-		pid2 = start(proc_timer, 4000, 127, "timer2", 0);
-		assert(pid1 > 0);
+		pid2 = start(__proc6_2, 4, 66, "proc6_2", (void *)4);
 		assert(pid2 > 0);
-		clock_settings(&quartz, &ticks);
-		dur = 2 * quartz / ticks;
-		test_it();
-		c0 = current_clock();
-		do
-		{
-			test_it();
-			c = current_clock();
-		} while (c == c0);
-		wait_clock(c + dur);
-		assert(kill(pid1) == 0);
-		assert(waitpid(pid1, 0) == pid1);
-		assert(kill(pid2) == 0);
-		assert(waitpid(pid2, 0) == pid2);
-		printf("%lu changements de contexte sur %lu tops d'horloge", timer, dur);
-		pid1 = start(sleep_pr1, 4000, 192, "sleep", 0);
-		assert(pid1 > 0);
-		assert(kill(pid1) == 0);
-		assert(waitpid(pid1, &r) == pid1);
-		assert(r == 0);
-		printf(".\n");
+		pid3 = start(__proc6_2, 0xffffffff, 65, "proc6_3", (void *)5);
+		assert(pid3 < 0);
+		pid3 = start(__proc6_2, 8, 65, "proc6_3", (void *)5);
+		assert(pid3 > 0);
+		assert(waitpid(-1, &ret) == pid2);
+		assert(ret == 4);
+		assert(waitpid(-1, &ret) == pid3);
+		assert(ret == 5);
+		assert(waitpid(-1, &ret) == pid1);
+		assert(ret == 3);
+		assert(waitpid(pid1, 0) < 0);
+		assert(waitpid(-1, 0) < 0);
+		assert(waitpid(getpid(), 0) < 0);
+		printf("ok.\n");
 	}
 
 	void idle(void)
 	{
-		if (start((int (*)(void *))(test7), TAILLE_PILE - 1, 128, "test7", NULL) == -1)
-			printf("erreur start test7\n");
+		if (start((int (*)(void *))(test6), TAILLE_PILE - 1, 128, "test6", NULL) == -1)
+			printf("erreur start test6\n");
 
 		// boucle d'attente
 		while (1)

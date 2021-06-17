@@ -34,7 +34,6 @@ unsigned long current_clock();
 void wait_clock(unsigned long clock);
 void init_sleeping_file_procs();
 void init_bloque_fils_file_procs();
-void asleep_proc(int pid, unsigned long clock);
 void check_if_need_wake_up();
 void check_if_child_is_end();
 void awake_proc(int pid);
