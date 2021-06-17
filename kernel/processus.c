@@ -145,13 +145,10 @@ int start(int (*pt_func)(void *), unsigned long ssize, int prio, const char *nam
     sprintf(procs[i].nom, "%s", name);
     procs[pid].etat = ACTIVABLE;
     procs[pid].prio = prio;
-    procs[pid].zone_sauv[1] = (int)(&procs[pid].pile[TAILLE_PILE - 1 - 2]);
-    procs[pid].pile[TAILLE_PILE - 1 - 2] = (int)(pt_func);
-    procs[pid].pile[TAILLE_PILE - 1 - 1] = (int)(exit_proc_actif);
-    procs[pid].pile[TAILLE_PILE - 1] = (int)(arg);
-    unsigned long oups;
-    oups = ssize;
-    oups++;
+    procs[pid].zone_sauv[1] = (int)(&procs[pid].pile[ssize - 2]);
+    procs[pid].pile[ssize - 2] = (int)(pt_func);
+    procs[pid].pile[ssize - 1] = (int)(exit_proc_actif);
+    procs[pid].pile[ssize] = (int)(arg);
     procs[pid].parent = getpid();
     for (int n = 0; n < NBPROC; n++)
     {
@@ -218,10 +215,10 @@ int waitpid(int pid, int *retvalp)
         }
         int pid_fils = -1, index;
         bool ok = false;
-        for (int i = 0; i < NBPROC || pid_fils == -1 || file_procs[getproc(pid_fils)]->etat != ZOMBIE; i++)
+        for (int i = 0; i < NBPROC && (pid_fils == -1 || (file_procs[getproc(pid_fils)] != NULL && file_procs[getproc(pid_fils)]->etat != ZOMBIE)); i++)
         {
             pid_fils = file_procs[proc_actif]->fils[i];
-            if (pid_fils != -1 && file_procs[getproc(pid_fils)]->etat == ZOMBIE)
+            if (pid_fils != -1 && file_procs[getproc(pid_fils)] != NULL && file_procs[getproc(pid_fils)]->etat == ZOMBIE)
             {
                 ok = true; // il existe un fils qui est déjà fini
                 index = i;
@@ -237,12 +234,18 @@ int waitpid(int pid, int *retvalp)
             file_procs[proc_actif]->etat = BLOQUE_FILS;
             ordonnance();
         }
+        for (int i = 0; i < NBPROC && (pid_fils == -1 || (file_procs[getproc(pid_fils)] != NULL && file_procs[getproc(pid_fils)]->etat != ZOMBIE)); i++)
+        {
+            pid_fils = file_procs[proc_actif]->fils[i];
+            index = i;
+        }
         if (retvalp != NULL)
         {
             *retvalp = file_procs[getproc(pid_fils)]->retval;
         }
-        file_procs[getproc(pid_fils)]->pid = -1;
-        file_procs[getproc(pid_fils)] = NULL;
+        int proc = getproc(pid_fils);
+        file_procs[proc]->pid = -1;
+        file_procs[proc] = NULL;
         file_procs[proc_actif]->fils[index] = -1;
         return pid_fils;
     }

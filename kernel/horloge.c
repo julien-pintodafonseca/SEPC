@@ -86,7 +86,21 @@ unsigned long current_clock()
 
 void wait_clock(unsigned long clock)
 {
-    asleep_proc(proc_actif, clock);
+    if (file_procs[proc_actif]->etat == ACTIF)
+        file_procs[proc_actif]->etat = ENDORMI;
+    else
+        return; // err
+
+    int i = 0;
+    while (sleeping_file_procs[i].pid_wait != -1)
+    {
+        if (i >= NBPROC)
+            return; // err
+        i++;
+    }
+    sleeping_file_procs[i].pid_wait = getpid();
+    sleeping_file_procs[i].clk_wait = clock;
+    ordonnance();
 }
 
 void init_sleeping_file_procs()
@@ -107,31 +121,16 @@ void init_bloque_fils_file_procs()
     }
 }
 
-void asleep_proc(int pid, unsigned long clock)
-{
-    if (file_procs[proc_actif]->etat == ACTIF)
-        file_procs[proc_actif]->etat = ENDORMI;
-    else
-        return; // err
-
-    int i = 0;
-    while (sleeping_file_procs[i].pid_wait != -1)
-    {
-        if (i >= NBPROC)
-            return; // err
-        i++;
-    }
-    sleeping_file_procs[i].pid_wait = pid;
-    sleeping_file_procs[i].clk_wait = clock;
-}
-
 void check_if_need_wake_up()
 {
+    //printf("    %d %lu %lu    ", sleeping_file_procs[0].pid_wait, sleeping_file_procs[0].clk_wait, clk);
     for (int i = 0; i < NBPROC; i++)
     {
         if (clk >= sleeping_file_procs[i].clk_wait)
         {
-            awake_proc(sleeping_file_procs[i].pid_wait);
+            file_procs[getproc(sleeping_file_procs[i].pid_wait)]->etat = ACTIVABLE;
+            sleeping_file_procs[i].pid_wait = -1;
+            sleeping_file_procs[i].clk_wait = -1;
         }
     }
 }
@@ -142,45 +141,33 @@ void check_if_child_is_end()
     {
         if (bloque_fils_file_procs[i].pid_pere != -1)
         {
+            int proc_pere = getproc(bloque_fils_file_procs[i].pid_pere);
             if (bloque_fils_file_procs[i].pid_fils >= 0)
             {
                 if (file_procs[getproc(bloque_fils_file_procs[i].pid_fils)]->etat == ZOMBIE)
                 {
                     // le fils est fini
-                    file_procs[getproc(bloque_fils_file_procs[i].pid_pere)]->etat = ACTIVABLE;
+                    file_procs[proc_pere]->etat = ACTIVABLE;
                     bloque_fils_file_procs[i].pid_pere = -1;
                     bloque_fils_file_procs[i].pid_fils = -1;
                 }
             }
             else
             {
-                for (int j = 0; j < NBPROC || file_procs[proc_actif]->fils[j] == -1 || file_procs[getproc(file_procs[proc_actif]->fils[j])]->etat != ZOMBIE; j++)
+                for (int j = 0; j < NBPROC; j++)
                 {
-                    if (file_procs[proc_actif]->fils[j] != -1 && file_procs[getproc(file_procs[proc_actif]->fils[j])]->etat == ZOMBIE)
+                    if (file_procs[proc_pere]->fils[j] != -1 && file_procs[getproc(file_procs[proc_pere]->fils[j])]->etat == ZOMBIE)
                     {
                         // il existe un fils qui est déjà fini
-                        file_procs[getproc(bloque_fils_file_procs[i].pid_pere)]->etat = ACTIVABLE;
+                        file_procs[proc_pere]->etat = ACTIVABLE;
                         bloque_fils_file_procs[i].pid_pere = -1;
                         bloque_fils_file_procs[i].pid_fils = -1;
+                        break;
                     }
                 }
             }
         }
     }
-}
-
-void awake_proc(int pid)
-{
-    int i = 0;
-    while (sleeping_file_procs[i].pid_wait != pid)
-    {
-        if (i >= NBPROC)
-            return; // err
-        i++;
-    }
-    file_procs[getproc(pid)]->etat = ACTIVABLE;
-    sleeping_file_procs[i].pid_wait = -1;
-    sleeping_file_procs[i].clk_wait = -1;
 }
 
 /* Attend pendant le nombre de secondes waitsec */
