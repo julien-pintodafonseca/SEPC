@@ -4,8 +4,7 @@
  * chprio() et ordre de scheduling
  * kill() d'un processus qui devient moins prioritaire
  ******************************************************************************/
-int
-proc_prio4(void *arg)
+int proc_prio4(void *arg)
 {
 	/* arg = priority of this proc. */
 	int r;
@@ -18,8 +17,7 @@ proc_prio4(void *arg)
 	return 0;
 }
 
-int
-proc_prio5(void *arg)
+int proc_prio5(void *arg)
 {
 	/* Arg = priority of this proc. */
 	int r;
@@ -33,8 +31,7 @@ proc_prio5(void *arg)
 	return 0;
 }
 
-void
-test3(void)
+void test3(void)
 {
 	int pid1;
 	int p = 192;
@@ -56,7 +53,7 @@ test3(void)
 	assert(getprio(getpid()) == 128);
 	pid1 = start(proc_prio5, 4000, p, "prio", (void *)p);
 	assert(pid1 > 0);
-	printf(" 8");
+	printf(" 8"); // il s'arrête ici
 	r = kill(pid1);
 	assert(r == 0);
 	assert(waitpid(pid1, 0) == pid1);

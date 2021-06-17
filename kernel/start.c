@@ -23,6 +23,7 @@ void kernel_start(void)
 	bool affichageT = 0;
 	bool processusT1 = 0;
 	bool processusT2 = 0;
+	int dotest = 7; // TODO test 6 corriger + faire la suite
 
 	/* initialisation */
 	//call_debugger();      			  // useless with qemu -s -S
@@ -42,8 +43,20 @@ void kernel_start(void)
 
 	void idle(void)
 	{
-		if (start((int (*)(void *))(test6), 512, 128, "test6", NULL) == -1)
-			printf("erreur start test6\n");
+		if (dotest == 1)
+			start((int (*)(void *))(test1), 512, 128, "test1", NULL);
+		else if (dotest == 2)
+			start((int (*)(void *))(test2), 512, 128, "test2", NULL);
+		else if (dotest == 3)
+			start((int (*)(void *))(test3), 512, 128, "test3", NULL);
+		else if (dotest == 4)
+			start((int (*)(void *))(test4), 512, 128, "test4", NULL);
+		else if (dotest == 5)
+			start((int (*)(void *))(test5), 512, 128, "test5", NULL);
+		else if (dotest == 6)
+			start((int (*)(void *))(test6), 512, 128, "test6", NULL);
+		else if (dotest == 7)
+			start((int (*)(void *))(test7), 512, 128, "test7", NULL);
 
 		// boucle d'attente
 		while (1)
@@ -63,20 +76,18 @@ void kernel_start(void)
 	procs[0].etat = ACTIF;
 	procs[0].prio = 0;
 
-    //init pile
-    procs[0].taille_pile = 512 + 64 * sizeof(int);
-    procs[0].pile = mem_alloc(procs[0].taille_pile);
-    int index_int = procs[0].taille_pile / 4;
-    procs[0].pile[index_int - 3] = (int)(idle);
-    procs[0].zone_sauv[1] = (int)(&procs[0].pile[index_int - 3]);
-
+	//init pile
+	procs[0].taille_pile = 512 + 64 * sizeof(int);
+	procs[0].pile = mem_alloc(procs[0].taille_pile);
+	int index_int = procs[0].taille_pile / 4;
+	procs[0].pile[index_int - 3] = (int)(idle);
+	procs[0].zone_sauv[1] = (int)(&procs[0].pile[index_int - 3]);
 	procs[0].parent = -1;
 	for (int n = 0; n < NBPROC; n++)
 	{
 		procs[0].fils[n] = -1;
 	}
 	file_procs[0] = &procs[0];
-
 	idle();
 	return;
 }

@@ -5,7 +5,7 @@
 
 #define TAILLE_NOM 20
 #define TAILLE_SAUV 5
-#define TAILLE_PILE 10240 // to delete
+#define TAILLE_PILE 10240 // TODO delete
 #define MAX_INT 2147483647
 #define NBPROC 30
 #define MAXPRIO 256
@@ -64,11 +64,6 @@ int getproc(int pid);
 int getprio(int pid);
 int chprio(int pid, int newprio);
 int getpid(void);
-
-void proc1(void);
-void proc2(void);
-void proc3(void);
-void proc4(void);
 void idle(void);
 
 #endif /* PROCESSUS_H_ */

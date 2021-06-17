@@ -11,7 +11,10 @@ void context_switch(int old, int new)
 {
     if (file_procs[old]->etat == ACTIF)
         file_procs[old]->etat = ACTIVABLE;
-    file_procs[new]->etat = ACTIF;
+    if (file_procs[new]->etat == ACTIVABLE)
+        file_procs[new]->etat = ACTIF;
+    else
+        return; // erreur, on switch sur un processus non activable
     ctx_sw(file_procs[old]->zone_sauv, file_procs[new]->zone_sauv);
 }
 
@@ -102,7 +105,6 @@ void exit(int retval)
 {
     file_procs[proc_actif]->retval = retval;
     exit_procs(proc_actif);
-    //for (int i=0;i<0;i++);
     sti();
     while (1)
         ;
@@ -127,6 +129,19 @@ int kill(int pid)
             }
         }
     }
+    if (file_procs[proc]->etat == BLOQUE_FILS)
+    {
+        // supprimer de la file des pères attendant leurs fils
+        for (int i = 0; i < NBPROC; i++)
+        {
+            if (bloque_fils_file_procs[i].pid_pere == pid)
+            {
+                bloque_fils_file_procs[i].pid_pere = -1;
+                bloque_fils_file_procs[i].pid_fils = -1;
+                break;
+            }
+        }
+    }
     file_procs[proc]->retval = 0;
     exit_procs(proc);
     return 0;
@@ -136,7 +151,7 @@ int kill(int pid)
 int start(int (*pt_func)(void *), unsigned long ssize, int prio, const char *name, void *arg)
 {
     if (ssize > MAX_INT)
-        return -1; // err
+        return -1; // erreur de dépassement de la pile
     int i;
     struct processus *tmp;
     for (i = 0; i < NBPROC && file_procs[i] != NULL; i++)
@@ -149,17 +164,20 @@ int start(int (*pt_func)(void *), unsigned long ssize, int prio, const char *nam
     sprintf(procs[i].nom, "%s", name);
     procs[pid].etat = ACTIVABLE;
     procs[pid].prio = prio;
-
-    //init pile
+    // on libère la pile si elle est init
+    if (procs[pid].pile != NULL)
+    {
+        mem_free(procs[pid].pile, procs[pid].taille_pile);
+        procs[pid].pile = NULL;
+    }
+    // on init la pile
     procs[pid].taille_pile = ssize + 64 * sizeof(int);
     procs[pid].pile = mem_alloc(procs[pid].taille_pile);
     int index_int = procs[pid].taille_pile / 4;
     procs[pid].pile[index_int - 3] = (int)(pt_func);
     procs[pid].pile[index_int - 2] = (int)(exit_proc_actif);
     procs[pid].pile[index_int - 1] = (int)(arg);
-    
     procs[pid].zone_sauv[1] = (int)(&procs[pid].pile[index_int - 3]);
-    
     procs[pid].parent = getpid();
     for (int n = 0; n < NBPROC; n++)
     {

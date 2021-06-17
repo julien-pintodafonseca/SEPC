@@ -5,15 +5,13 @@
  * waitpid() de ce fils termine par kill()
  * waitpid() de fils termine par exit()
  ******************************************************************************/
-int
-dummy2(void *args)
+int dummy2(void *args)
 {
 	printf(" X");
 	return (int)args;
 }
 
-int
-dummy2_2(void *args)
+int dummy2_2(void *args)
 {
 	printf(" 5");
 	exit((int)args);
@@ -21,8 +19,7 @@ dummy2_2(void *args)
 	return 0;
 }
 
-void
-test2(void)
+void test2(void)
 {
 	int rval;
 	int r;

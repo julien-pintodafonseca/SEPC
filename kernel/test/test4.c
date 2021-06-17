@@ -18,8 +18,7 @@ void test_it()
 const int loop_count0 = 5000;
 const int loop_count1 = 10000;
 
-int
-busy_loop1(void *arg)
+int busy_loop1(void *arg)
 {
 	(void)arg;
 	while (1)
@@ -38,8 +37,7 @@ busy_loop1(void *arg)
 }
 
 /* assume the process to suspend has a priority == 64 */
-int
-busy_loop2(void *arg)
+int busy_loop2(void *arg)
 {
 	int i;
 
@@ -60,8 +58,7 @@ busy_loop2(void *arg)
 	return 0;
 }
 
-void
-test4(void)
+void test4(void)
 {
 	int pid1, pid2;
 	int r;
@@ -75,7 +72,7 @@ test4(void)
 	printf("1 -");
 	r = chprio(getpid(), 32);
 	assert(r == 128);
-	printf(" - 2");
+	printf(" - 2"); // il s'arrête ici /!\ A B A B B A A ??
 	r = kill(pid1);
 	assert(r == 0);
 	assert(waitpid(pid1, 0) == pid1);
