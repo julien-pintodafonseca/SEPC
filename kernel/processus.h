@@ -5,7 +5,8 @@
 
 #define TAILLE_NOM 20
 #define TAILLE_SAUV 5
-#define TAILLE_PILE 512
+#define TAILLE_PILE 10240 // to delete
+#define MAX_INT 2147483647
 #define NBPROC 30
 #define MAXPRIO 256
 
@@ -27,10 +28,13 @@ struct processus
     ETAT etat;
     int prio;
     int zone_sauv[TAILLE_SAUV];
-    int pile[TAILLE_PILE];
     int parent;
     int fils[NBPROC];
     int retval;
+
+    //gestion pile
+    int *pile;
+    int taille_pile;
 };
 
 struct processus procs[NBPROC];

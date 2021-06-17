@@ -2,10 +2,19 @@
 #include "cpu.h"
 #include "stdbool.h"
 #include "stdio.h"
+#include "mem.h"
 
 #include "test/affichage-test.c"
 #include "test/processus-test1.c"
 #include "test/processus-test2.c"
+#include "test/test1.c"
+#include "test/test2.c"
+#include "test/test3.c"
+#include "test/test4.c"
+#include "test/test5.c"
+#include "test/test6.c"
+#include "test/test7.c"
+
 bool is_timer_printed = 1;
 
 void kernel_start(void)
@@ -31,44 +40,9 @@ void kernel_start(void)
 	if (processusT2)
 		processusTest2();
 
-	/*******************************************************************************
-	 * Test 6
-	 *
-	 * Waitpid multiple.
-	 * Creation de processus avec differentes tailles de piles.
-	 ******************************************************************************/
-	extern int __proc6_1(void *arg);
-	extern int __proc6_2(void *arg);
-
-	void test6(void)
-	{
-		int pid1, pid2, pid3;
-		int ret;
-
-		assert(getprio(getpid()) == 128);
-		pid1 = start(__proc6_1, 0, 64, "proc6_1", 0);
-		assert(pid1 > 0);
-		pid2 = start(__proc6_2, 4, 66, "proc6_2", (void *)4);
-		assert(pid2 > 0);
-		pid3 = start(__proc6_2, 0xffffffff, 65, "proc6_3", (void *)5);
-		assert(pid3 < 0);
-		pid3 = start(__proc6_2, 8, 65, "proc6_3", (void *)5);
-		assert(pid3 > 0);
-		assert(waitpid(-1, &ret) == pid2);
-		assert(ret == 4);
-		assert(waitpid(-1, &ret) == pid3);
-		assert(ret == 5);
-		assert(waitpid(-1, &ret) == pid1);
-		assert(ret == 3);
-		assert(waitpid(pid1, 0) < 0);
-		assert(waitpid(-1, 0) < 0);
-		assert(waitpid(getpid(), 0) < 0);
-		printf("ok.\n");
-	}
-
 	void idle(void)
 	{
-		if (start((int (*)(void *))(test6), TAILLE_PILE - 1, 128, "test6", NULL) == -1)
+		if (start((int (*)(void *))(test6), 512, 128, "test6", NULL) == -1)
 			printf("erreur start test6\n");
 
 		// boucle d'attente
@@ -88,8 +62,14 @@ void kernel_start(void)
 	sprintf(procs[0].nom, "%p", "idle");
 	procs[0].etat = ACTIF;
 	procs[0].prio = 0;
-	procs[0].zone_sauv[1] = (int)(&procs[0].pile[TAILLE_PILE - 1]);
-	procs[0].pile[TAILLE_PILE - 1] = (int)(idle);
+
+    //init pile
+    procs[0].taille_pile = 512 + 64 * sizeof(int);
+    procs[0].pile = mem_alloc(procs[0].taille_pile);
+    int index_int = procs[0].taille_pile / 4;
+    procs[0].pile[index_int - 3] = (int)(idle);
+    procs[0].zone_sauv[1] = (int)(&procs[0].pile[index_int - 3]);
+
 	procs[0].parent = -1;
 	for (int n = 0; n < NBPROC; n++)
 	{

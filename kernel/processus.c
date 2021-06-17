@@ -2,6 +2,7 @@
 #include "stdio.h"
 #include "stdbool.h"
 #include "cpu.h"
+#include "mem.h"
 
 #include "processus.h"
 #include "horloge.h"
@@ -101,6 +102,7 @@ void exit(int retval)
 {
     file_procs[proc_actif]->retval = retval;
     exit_procs(proc_actif);
+    //for (int i=0;i<0;i++);
     sti();
     while (1)
         ;
@@ -133,10 +135,8 @@ int kill(int pid)
 /* Primitives de processus */
 int start(int (*pt_func)(void *), unsigned long ssize, int prio, const char *name, void *arg)
 {
-    /*
-    if (ssize > TAILLE_PILE)
-        return -1; // erreur dépassement pile
-    */
+    if (ssize > MAX_INT)
+        return -1; // err
     int i;
     struct processus *tmp;
     for (i = 0; i < NBPROC && file_procs[i] != NULL; i++)
@@ -149,10 +149,17 @@ int start(int (*pt_func)(void *), unsigned long ssize, int prio, const char *nam
     sprintf(procs[i].nom, "%s", name);
     procs[pid].etat = ACTIVABLE;
     procs[pid].prio = prio;
-    procs[pid].zone_sauv[1] = (int)(&procs[pid].pile[ssize - 2]);
-    procs[pid].pile[ssize - 2] = (int)(pt_func);
-    procs[pid].pile[ssize - 1] = (int)(exit_proc_actif);
-    procs[pid].pile[ssize] = (int)(arg);
+
+    //init pile
+    procs[pid].taille_pile = ssize + 64 * sizeof(int);
+    procs[pid].pile = mem_alloc(procs[pid].taille_pile);
+    int index_int = procs[pid].taille_pile / 4;
+    procs[pid].pile[index_int - 3] = (int)(pt_func);
+    procs[pid].pile[index_int - 2] = (int)(exit_proc_actif);
+    procs[pid].pile[index_int - 1] = (int)(arg);
+    
+    procs[pid].zone_sauv[1] = (int)(&procs[pid].pile[index_int - 3]);
+    
     procs[pid].parent = getpid();
     for (int n = 0; n < NBPROC; n++)
     {
