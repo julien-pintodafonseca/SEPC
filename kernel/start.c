@@ -7,6 +7,7 @@
 #include "test/affichage-test.c"
 #include "test/processus-test1.c"
 #include "test/processus-test2.c"
+
 #include "test/test1.c"
 #include "test/test2.c"
 #include "test/test3.c"
@@ -16,15 +17,58 @@
 #include "test/test7.c"
 #include "test/test8.c"
 
+void quit(void)
+{
+	exit(0);
+}
+
+struct
+{
+	const char *name;
+	void (*f)(void);
+} commands[] = {
+	{"1", test1},
+	{"2", test2},
+	{"3", test3},
+	//{"4", test4},
+	{"5", test5},
+	{"6", test6},
+	//{"7", test7},
+	//{"8", test8},
+	//{"9", test9},
+	//{"10", test10},
+	//{"11", test11},
+	//{"12", test12},
+	//{"13", test13},
+	//{"14", test14},
+	//{"15", test15},
+	//{"16", test16},
+	//{"17", test17},
+	//{"18", test18},
+	//{"19", test19},
+	//{"20", test20},
+	{"q", quit},
+};
+
+void auto_test(void)
+{
+	int i = 0;
+
+	while (commands[i].f != quit)
+	{
+		printf("Test %s : ", commands[i].name);
+		commands[i++].f();
+	}
+}
+
 void kernel_start(void)
 {
 	timer_print = 1; // mettre à 1 pour afficher le timer, 0 sinon
 
-	/* variables de tests */
+	/* variables de tests spécifiques */
 	bool affichageT = 0;
 	bool processusT1 = 0;
 	bool processusT2 = 0;
-	int dotest = 6; // mettre à 0 pour ne pas lancer de test, mettre le numéro de test sinon
 
 	/* initialisation */
 	//call_debugger();      			  // useless with qemu -s -S
@@ -34,7 +78,7 @@ void kernel_start(void)
 	init_traitant_IT(32, traitant_IT_32); // initialisation du traitant 32
 	efface_ecran();						  // efface l'écran
 
-	/* tests */
+	/* tests spécifiques */
 	if (affichageT)
 		affichageTest();
 	if (processusT1)
@@ -44,23 +88,8 @@ void kernel_start(void)
 
 	void idle(void)
 	{
-		/* tests */
-		if (dotest == 1)
-			start((int (*)(void *))(test1), 4000, 128, "test1", NULL);
-		else if (dotest == 2)
-			start((int (*)(void *))(test2), 4000, 128, "test2", NULL);
-		else if (dotest == 3)
-			start((int (*)(void *))(test3), 4000, 128, "test3", NULL);
-		else if (dotest == 4)
-			start((int (*)(void *))(test4), 4000, 128, "test4", NULL);
-		else if (dotest == 5)
-			start((int (*)(void *))(test5), 4000, 128, "test5", NULL);
-		else if (dotest == 6)
-			start((int (*)(void *))(test6), 4000, 128, "test6", NULL);
-		else if (dotest == 7)
-			start((int (*)(void *))(test7), 4000, 128, "test7", NULL);
-		else if (dotest == 8)
-			start((int (*)(void *))(test8), 4000, 128, "test8", NULL);
+		/* auto_test */
+		start((int (*)(void *))(auto_test), 4000, 128, "auto_test", NULL);
 
 		// boucle d'attente
 		while (1)
@@ -81,7 +110,7 @@ void kernel_start(void)
 	procs[0].prio = 0;
 
 	//init pile
-	procs[0].taille_pile = 512 + 128 * sizeof(int);
+	procs[0].taille_pile = 4000 + 128 * sizeof(int);
 	procs[0].pile = mem_alloc(procs[0].taille_pile);
 	int index_int = procs[0].taille_pile / 4;
 	procs[0].pile[index_int - 3] = (int)(idle);
