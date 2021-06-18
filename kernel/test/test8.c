@@ -61,10 +61,8 @@ suicide_launcher(void *arg)
 {
 	int pid1;
 	(void)arg;
-	printf("B");
 	pid1 = start(suicide, 4000, 192, "suicide_launcher", 0);
 	assert(pid1 > 0);
-	printf("C");
 	return pid1;
 }
 
@@ -92,9 +90,7 @@ test8(void)
 	{
 		for (i = 0; i < 10; i++)
 		{
-			printf("A");
 			pid = start(suicide_launcher, 4000, 200, "suicide_launcher", 0);
-			printf("D");
 			assert(pid > 0);
 			assert(waitpid(pid, 0) == pid);
 		}

@@ -18,13 +18,13 @@
 
 void kernel_start(void)
 {
-	timer_print = 1;				      // mettre à 1 pour afficher le timer, 0 sinon
+	timer_print = 1; // mettre à 1 pour afficher le timer, 0 sinon
 
 	/* variables de tests */
 	bool affichageT = 0;
 	bool processusT1 = 0;
 	bool processusT2 = 0;
-	int dotest = 6; 					  // mettre à 0 pour ne pas lancer de test, mettre le numéro de test sinon
+	int dotest = 6; // mettre à 0 pour ne pas lancer de test, mettre le numéro de test sinon
 
 	/* initialisation */
 	//call_debugger();      			  // useless with qemu -s -S

@@ -72,7 +72,7 @@ void test4(void)
 	printf("1 -");
 	r = chprio(getpid(), 32);
 	assert(r == 128);
-	printf(" - 2"); // il s'arrête ici /!\ A B A B B A A ??
+	printf(" - 2");
 	r = kill(pid1);
 	assert(r == 0);
 	assert(waitpid(pid1, 0) == pid1);

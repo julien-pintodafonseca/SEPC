@@ -192,7 +192,6 @@ int start(int (*pt_func)(void *), unsigned long ssize, int prio, const char *nam
     file_procs[i] = &procs[pid];
     // On remonte le processus tant que sa priorité
     // est supérieure au processus précédent dans la file
-    int j = i;
     for (; i >= 1; i--)
     {
         if (file_procs[i - 1] != NULL && file_procs[i] != NULL && file_procs[i - 1]->pid != -1 && file_procs[i - 1]->prio < file_procs[i]->prio)
@@ -204,7 +203,6 @@ int start(int (*pt_func)(void *), unsigned long ssize, int prio, const char *nam
             tmp = file_procs[i - 1];
             file_procs[i - 1] = file_procs[i];
             file_procs[i] = tmp;
-            j = i - 1;
         }
     }
     for (; i < NBPROC - 1; i++)
@@ -218,10 +216,8 @@ int start(int (*pt_func)(void *), unsigned long ssize, int prio, const char *nam
             tmp = file_procs[i + 1];
             file_procs[i + 1] = file_procs[i];
             file_procs[i] = tmp;
-            j = i + 1;
         }
     }
-    pid = file_procs[j]->pid; // sauvegarde avant possible modification
     if (prio > file_procs[proc_actif]->prio)
         ordonnance();
     return pid;
@@ -278,7 +274,9 @@ int waitpid(int pid, int *retvalp)
     {
         int i;
         for (i = 0; i < NBPROC && file_procs[proc_actif]->fils[i] != pid; i++)
-            ;
+        {
+            // printf(">>> for -> pid fils : %d\n", file_procs[proc_actif]->fils[i]);
+        }
         if (i >= NBPROC) // pas un fils du proc_actif
         {
             return -1;
