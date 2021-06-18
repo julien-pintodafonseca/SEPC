@@ -16,6 +16,7 @@
 #include "test/test6.c"
 #include "test/test7.c"
 #include "test/test8.c"
+#include "test/test9.c"
 
 void quit(void)
 {
@@ -34,7 +35,7 @@ struct
 	{"5", test5},
 	{"6", test6},
 	{"7", test7},
-	//{"8", test8},
+	{"8", test8},
 	//{"9", test9},
 	//{"10", test10},
 	//{"11", test11},
