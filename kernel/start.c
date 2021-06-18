@@ -8,6 +8,8 @@
 #include "test/processus-test1.c"
 #include "test/processus-test2.c"
 
+#include "test/phase4.c"
+
 #include "test/test1.c"
 #include "test/test2.c"
 #include "test/test3.c"
@@ -64,10 +66,15 @@ void auto_test(void)
 
 void kernel_start(void)
 {
+	/* attention à ne bien activer qu'une seule variable de test à la fois !!! */
 	/* variables de tests spécifiques */
 	bool affichageT = false;
 	bool processusT1 = false;
 	bool processusT2 = false;
+	/* phase 4 - wait_clock() */
+	bool phase4 = false;
+	/* auto_test */
+	bool autoT = true;
 
 	/* initialisation */
 	//call_debugger();      			  // useless with qemu -s -S
@@ -91,7 +98,12 @@ void kernel_start(void)
 	void idle(void)
 	{
 		/* auto_test */
-		start((int (*)(void *))(auto_test), 4000, 128, "auto_test", NULL);
+		if (autoT)
+			start((int (*)(void *))(auto_test), 4000, 128, "auto_test", NULL);
+
+		/* phase 4*/
+		if (phase4)
+			start((int (*)(void *))(prog_phase4), 4000, 128, "prog_phase4", NULL);
 
 		// boucle d'attente
 		while (1)
