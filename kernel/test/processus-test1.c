@@ -1,5 +1,6 @@
 /* Test 1 des processus : idle_t1 passe la main à proc1_t1 */
 #include "processus.h"
+#define TAILLE_PILE 4000
 
 struct processus file[NBPROC];
 

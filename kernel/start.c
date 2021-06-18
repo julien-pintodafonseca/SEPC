@@ -14,6 +14,7 @@
 #include "test/test5.c"
 #include "test/test6.c"
 #include "test/test7.c"
+#include "test/test8.c"
 
 void kernel_start(void)
 {
@@ -45,19 +46,21 @@ void kernel_start(void)
 	{
 		/* tests */
 		if (dotest == 1)
-			start((int (*)(void *))(test1), 512, 128, "test1", NULL);
+			start((int (*)(void *))(test1), 4000, 128, "test1", NULL);
 		else if (dotest == 2)
-			start((int (*)(void *))(test2), 512, 128, "test2", NULL);
+			start((int (*)(void *))(test2), 4000, 128, "test2", NULL);
 		else if (dotest == 3)
-			start((int (*)(void *))(test3), 512, 128, "test3", NULL);
+			start((int (*)(void *))(test3), 4000, 128, "test3", NULL);
 		else if (dotest == 4)
-			start((int (*)(void *))(test4), 512, 128, "test4", NULL);
+			start((int (*)(void *))(test4), 4000, 128, "test4", NULL);
 		else if (dotest == 5)
-			start((int (*)(void *))(test5), 512, 128, "test5", NULL);
+			start((int (*)(void *))(test5), 4000, 128, "test5", NULL);
 		else if (dotest == 6)
-			start((int (*)(void *))(test6), 512, 128, "test6", NULL);
+			start((int (*)(void *))(test6), 4000, 128, "test6", NULL);
 		else if (dotest == 7)
-			start((int (*)(void *))(test7), 512, 128, "test7", NULL);
+			start((int (*)(void *))(test7), 4000, 128, "test7", NULL);
+		else if (dotest == 8)
+			start((int (*)(void *))(test8), 4000, 128, "test8", NULL);
 
 		// boucle d'attente
 		while (1)

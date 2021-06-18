@@ -5,7 +5,6 @@
 
 #define TAILLE_NOM 20
 #define TAILLE_SAUV 5
-#define TAILLE_PILE 10240 // TODO delete
 #define MAX_INT 2147483647
 #define NBPROC 30
 #define MAXPRIO 256

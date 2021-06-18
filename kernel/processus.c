@@ -144,6 +144,8 @@ int kill(int pid)
     }
     file_procs[proc]->retval = 0;
     exit_procs(proc);
+    if (proc == proc_actif)
+        ordonnance();
     return 0;
 }
 
@@ -191,38 +193,32 @@ int start(int (*pt_func)(void *), unsigned long ssize, int prio, const char *nam
     // On remonte le processus tant que sa priorité
     // est supérieure au processus précédent dans la file
     int j = i;
-    if (i != 0 && file_procs[i - 1]->prio < file_procs[i]->prio)
+    for (; i >= 1; i--)
     {
-        for (; i >= 1; i--)
+        if (file_procs[i - 1] != NULL && file_procs[i] != NULL && file_procs[i - 1]->pid != -1 && file_procs[i - 1]->prio < file_procs[i]->prio)
         {
-            if (file_procs[i - 1]->prio < file_procs[i]->prio)
-            {
-                if (proc_actif == i - 1)
-                {
-                    proc_actif++;
-                }
-                tmp = file_procs[i - 1];
-                file_procs[i - 1] = file_procs[i];
-                file_procs[i] = tmp;
-                j = i - 1;
-            }
+            if (proc_actif == i)
+                proc_actif--;
+            else if (proc_actif == i - 1)
+                proc_actif++;
+            tmp = file_procs[i - 1];
+            file_procs[i - 1] = file_procs[i];
+            file_procs[i] = tmp;
+            j = i - 1;
         }
     }
-    else
+    for (; i < NBPROC - 1; i++)
     {
-        for (; i < NBPROC; i++)
+        if (file_procs[i + 1] != NULL && file_procs[i] != NULL && file_procs[i + 1]->pid != -1 && file_procs[i + 1]->prio >= file_procs[i]->prio)
         {
-            if (file_procs[i + 1] != NULL && file_procs[i + 1]->pid != -1 && file_procs[i + 1]->prio >= file_procs[i]->prio)
-            {
-                if (proc_actif == i + 1)
-                {
-                    proc_actif--;
-                }
-                tmp = file_procs[i + 1];
-                file_procs[i + 1] = file_procs[i];
-                file_procs[i] = tmp;
-                j = i + 1;
-            }
+            if (proc_actif == i)
+                proc_actif++;
+            else if (proc_actif == i + 1)
+                proc_actif--;
+            tmp = file_procs[i + 1];
+            file_procs[i + 1] = file_procs[i];
+            file_procs[i] = tmp;
+            j = i + 1;
         }
     }
     pid = file_procs[j]->pid; // sauvegarde avant possible modification
