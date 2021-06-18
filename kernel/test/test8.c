@@ -47,7 +47,7 @@ div64(unsigned long long x, unsigned long long div, unsigned long long *rem)
  * Creation de processus se suicidant en boucle. Test de la vitesse de creation
  * de processus.
  ******************************************************************************/
-static int
+int
 suicide(void *arg)
 {
 	(void)arg;
@@ -56,7 +56,7 @@ suicide(void *arg)
 	return 0;
 }
 
-static int
+int
 suicide_launcher(void *arg)
 {
 	int pid1;
@@ -68,7 +68,7 @@ suicide_launcher(void *arg)
 	return pid1;
 }
 
-static void
+void
 test8(void)
 {
 	unsigned long long tsc1;

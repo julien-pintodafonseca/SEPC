@@ -21,7 +21,7 @@ __asm__(
 	"ret\n"
 	".previous\n");
 
-static void test6(void)
+void test6(void)
 {
 	int pid1, pid2, pid3;
 	int ret;
