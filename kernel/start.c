@@ -30,10 +30,10 @@ struct
 	{"1", test1},
 	{"2", test2},
 	{"3", test3},
-	//{"4", test4},
+	{"4", test4},
 	{"5", test5},
 	{"6", test6},
-	//{"7", test7},
+	{"7", test7},
 	//{"8", test8},
 	//{"9", test9},
 	//{"10", test10},
@@ -63,20 +63,21 @@ void auto_test(void)
 
 void kernel_start(void)
 {
-	timer_print = 1; // mettre à 1 pour afficher le timer, 0 sinon
-
 	/* variables de tests spécifiques */
-	bool affichageT = 0;
-	bool processusT1 = 0;
-	bool processusT2 = 0;
+	bool affichageT = false;
+	bool processusT1 = false;
+	bool processusT2 = false;
 
 	/* initialisation */
 	//call_debugger();      			  // useless with qemu -s -S
+	efface_ecran(); // efface l'écran
+
+	/* horloge */
 	unsigned long quartz, ticks;
 	clock_settings(&quartz, &ticks);	  // réglage de l'horloge
 	masque_IRQ(0, 0);					  // démasquage de l'IRQ 0
 	init_traitant_IT(32, traitant_IT_32); // initialisation du traitant 32
-	efface_ecran();						  // efface l'écran
+	print_timer = true;					  // affiche le timer
 
 	/* tests spécifiques */
 	if (affichageT)

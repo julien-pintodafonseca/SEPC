@@ -64,7 +64,7 @@ void efface_ecran(void)
 /* Défilement de l'écran */
 void defilement(void)
 {
-    if (timer_print)
+    if (print_timer)
     {
         memmove(ptr_mem(0, 0), ptr_mem(1, 0), 2 * (NB_COL - 8));
         memmove(ptr_mem(1, 0), ptr_mem(2, 0), 2 * (NB_LIG - 2) * NB_COL);

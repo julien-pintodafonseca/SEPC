@@ -274,9 +274,7 @@ int waitpid(int pid, int *retvalp)
     {
         int i;
         for (i = 0; i < NBPROC && file_procs[proc_actif]->fils[i] != pid; i++)
-        {
-            // printf(">>> for -> pid fils : %d\n", file_procs[proc_actif]->fils[i]);
-        }
+            ;
         if (i >= NBPROC) // pas un fils du proc_actif
         {
             return -1;

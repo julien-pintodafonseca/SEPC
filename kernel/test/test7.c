@@ -6,8 +6,7 @@
  * periode de scheduling
  ******************************************************************************/
 
-int
-proc_timer1(void *arg)
+int proc_timer1(void *arg)
 {
 	unsigned long quartz;
 	unsigned long ticks;
@@ -29,8 +28,7 @@ proc_timer1(void *arg)
 
 volatile unsigned long timer;
 
-int
-proc_timer(void *arg)
+int proc_timer(void *arg)
 {
 	(void)arg;
 	while (1)
@@ -45,8 +43,7 @@ proc_timer(void *arg)
 	return 0;
 }
 
-int
-sleep_pr1(void *args)
+int sleep_pr1(void *args)
 {
 	(void)args;
 	wait_clock(current_clock() + 2);
@@ -55,8 +52,7 @@ sleep_pr1(void *args)
 	return 1;
 }
 
-void
-test7(void)
+void test7(void)
 {
 	int pid1, pid2, r;
 	unsigned long c0, c, quartz, ticks, dur;

@@ -5,16 +5,14 @@
  * Certaines interdictions ne sont peut-etre pas dans la spec. Changez les pour
  * faire passer le test correctement.
  ******************************************************************************/
-int
-no_run(void *arg)
+int no_run(void *arg)
 {
 	(void)arg;
 	assert(0);
 	return 1;
 }
 
-int
-waiter(void *arg)
+int waiter(void *arg)
 {
 	int pid = (int)arg;
 	assert(kill(pid) == 0);
@@ -22,8 +20,7 @@ waiter(void *arg)
 	return 1;
 }
 
-void
-test5(void)
+void test5(void)
 {
 	int pid1, pid2;
 	int r;

@@ -38,7 +38,7 @@ void tic_PIT(void)
 {
     outb(0x20, 0x20); // acquittement de l'interruption
     clk++;            // on compte l'interruption
-    
+
     /* mise à jour de l'horloge */
     if (clk % CLOCKFREQ == 0)
     {
@@ -48,7 +48,7 @@ void tic_PIT(void)
         unsigned long minutes = (sec / 60) % 60;
         unsigned long secondes = sec % 60;
         sprintf(str, "%.2ld:%.2ld:%.2ld", hours, minutes, secondes);
-        if (timer_print)
+        if (print_timer)
             print_time(str);
     }
 

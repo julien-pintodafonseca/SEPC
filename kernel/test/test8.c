@@ -41,14 +41,14 @@ div64(unsigned long long x, unsigned long long div, unsigned long long *rem)
 		x -= div;
 	}
 }
+
 /*******************************************************************************
  * Test 8
  *
  * Creation de processus se suicidant en boucle. Test de la vitesse de creation
  * de processus.
  ******************************************************************************/
-int
-suicide(void *arg)
+int suicide(void *arg)
 {
 	(void)arg;
 	kill(getpid());
@@ -56,8 +56,7 @@ suicide(void *arg)
 	return 0;
 }
 
-int
-suicide_launcher(void *arg)
+int suicide_launcher(void *arg)
 {
 	int pid1;
 	(void)arg;
@@ -66,8 +65,7 @@ suicide_launcher(void *arg)
 	return pid1;
 }
 
-void
-test8(void)
+void test8(void)
 {
 	unsigned long long tsc1;
 	unsigned long long tsc2;

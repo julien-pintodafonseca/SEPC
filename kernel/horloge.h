@@ -7,7 +7,7 @@
 #define CLOCKFREQ 300 // fréquence d'interruption (entre 100Hz et 1000Hz)
 #define SCHEDFREQ 50  // fréquence de préemption des processus (enter 50Hz et 1000Hz)
 
-bool timer_print;     // mettre à 1 pour afficher le timer, 0 sinon
+bool print_timer; // permet d'afficher le timer ou non
 
 struct sleeping_procs
 {

@@ -7,16 +7,14 @@
  * Terminaison normale avec valeur de retour
  * Attente de terminaison (cas fils avant pere et cas pere avant fils)
  ******************************************************************************/
-int
-dummy1(void *arg)
+int dummy1(void *arg)
 {
 	printf("1");
 	assert((int)arg == DUMMY_VAL);
 	return 3;
 }
 
-int
-dummy1_2(void *arg)
+int dummy1_2(void *arg)
 {
 	printf(" 5");
 	assert((int)arg == DUMMY_VAL + 1);
@@ -24,8 +22,7 @@ dummy1_2(void *arg)
 	return 4;
 }
 
-void
-test1(void)
+void test1(void)
 {
 	int pid1;
 	int r;
