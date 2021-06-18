@@ -15,15 +15,15 @@
 #include "test/test6.c"
 #include "test/test7.c"
 
-bool is_timer_printed = 1;
-
 void kernel_start(void)
 {
+	timer_print = 1;				      // mettre à 1 pour afficher le timer, 0 sinon
+
 	/* variables de tests */
 	bool affichageT = 0;
 	bool processusT1 = 0;
 	bool processusT2 = 0;
-	int dotest = 7; // TODO test 6 corriger + faire la suite
+	int dotest = 6; 					  // mettre à 0 pour ne pas lancer de test, mettre le numéro de test sinon
 
 	/* initialisation */
 	//call_debugger();      			  // useless with qemu -s -S
@@ -43,6 +43,7 @@ void kernel_start(void)
 
 	void idle(void)
 	{
+		/* tests */
 		if (dotest == 1)
 			start((int (*)(void *))(test1), 512, 128, "test1", NULL);
 		else if (dotest == 2)
@@ -77,7 +78,7 @@ void kernel_start(void)
 	procs[0].prio = 0;
 
 	//init pile
-	procs[0].taille_pile = 512 + 64 * sizeof(int);
+	procs[0].taille_pile = 512 + 128 * sizeof(int);
 	procs[0].pile = mem_alloc(procs[0].taille_pile);
 	int index_int = procs[0].taille_pile / 4;
 	procs[0].pile[index_int - 3] = (int)(idle);

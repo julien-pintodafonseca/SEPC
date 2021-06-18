@@ -7,7 +7,7 @@
 #include "stdio.h"
 
 #include "affichage.h"
-#include "start.h"
+#include "horloge.h"
 
 uint32_t x = 0; // ligne
 uint32_t y = 0; // colonne
@@ -64,7 +64,7 @@ void efface_ecran(void)
 /* Défilement de l'écran */
 void defilement(void)
 {
-    if (is_timer_printed)
+    if (timer_print)
     {
         memmove(ptr_mem(0, 0), ptr_mem(1, 0), 2 * (NB_COL - 8));
         memmove(ptr_mem(1, 0), ptr_mem(2, 0), 2 * (NB_LIG - 2) * NB_COL);

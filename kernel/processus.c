@@ -171,7 +171,7 @@ int start(int (*pt_func)(void *), unsigned long ssize, int prio, const char *nam
         procs[pid].pile = NULL;
     }
     // on init la pile
-    procs[pid].taille_pile = ssize + 64 * sizeof(int);
+    procs[pid].taille_pile = ssize + 128 * sizeof(int);
     procs[pid].pile = mem_alloc(procs[pid].taille_pile);
     int index_int = procs[pid].taille_pile / 4;
     procs[pid].pile[index_int - 3] = (int)(pt_func);

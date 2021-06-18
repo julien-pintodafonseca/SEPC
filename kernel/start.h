@@ -7,8 +7,6 @@
 
 #ifndef ASSEMBLER
 
-bool is_timer_printed;
-
 extern char first_stack[FIRST_STACK_SIZE];
 
 /* This is the first user process to start. It is mapped to the entry point
