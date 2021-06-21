@@ -2,6 +2,7 @@
 #define PROCESSUS_H_
 
 #include "stdint.h"
+#include "queue.h"
 
 #define TAILLE_NOM 20
 #define TAILLE_SAUV 5
@@ -38,7 +39,7 @@ struct processus
 
 struct processus procs[NBPROC];
 struct processus *file_procs[NBPROC];
-int proc_actif;
+int proc_actif, pid_sauv;
 
 extern void ctx_sw(int *, int *);
 

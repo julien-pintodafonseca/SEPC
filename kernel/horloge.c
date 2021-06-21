@@ -26,12 +26,6 @@ void clock_settings(unsigned long *quartz, unsigned long *ticks)
 {
     *quartz = 0x1234DD;             // fréquence d'oscillation du quartz
     *ticks = (*quartz / CLOCKFREQ); // nombre d'oscillations du quartz entre chaque interruption
-    outb(0x34, 0x43);
-    outb(*ticks % 256, 0x40);
-    outb(*ticks >> 8, 0x40);
-
-    init_sleeping_file_procs();    // initialise la liste des processus endormis
-    init_bloque_fils_file_procs(); // initialise la liste des processus attendant un fils
 }
 
 void tic_PIT(void)
@@ -51,7 +45,6 @@ void tic_PIT(void)
         if (print_timer)
             print_time(str);
     }
-
     if (clk % (CLOCKFREQ / SCHEDFREQ) == 0)
     {
         /* vérification processus endormi */
@@ -125,7 +118,6 @@ void init_bloque_fils_file_procs()
 
 void check_if_need_wake_up()
 {
-    //printf("    %d %lu %lu    ", sleeping_file_procs[0].pid_wait, sleeping_file_procs[0].clk_wait, clk);
     for (int i = 0; i < NBPROC; i++)
     {
         if (clk >= sleeping_file_procs[i].clk_wait)

@@ -9,44 +9,45 @@
 
 void context_switch(int old, int new)
 {
-    if (file_procs[old]->etat == ACTIF)
-        file_procs[old]->etat = ACTIVABLE;
-    if (file_procs[new]->etat == ACTIVABLE)
-        file_procs[new]->etat = ACTIF;
+    if (getproc(new) == -1)
+        return; // erreur, on switch sur un proocessus mort ou invalide
+    if (procs[old].etat == ACTIF)
+        procs[old].etat = ACTIVABLE;
+    if (procs[new].etat == ACTIVABLE)
+        procs[new].etat = ACTIF;
     else
         return; // erreur, on switch sur un processus non activable
-    ctx_sw(file_procs[old]->zone_sauv, file_procs[new]->zone_sauv);
+    ctx_sw(procs[old].zone_sauv, procs[new].zone_sauv);
 }
 
 int pidlibre(void)
 {
     int pid;
-    bool exist = true;
-    for (pid = -1; pid < NBPROC && exist; pid++)
-    {
-        exist = false;
-        for (int i = -1; i < NBPROC; i++)
-        {
-            if (procs[i].pid == pid)
-                exist = true;
-        }
-    }
-    pid--;
+    for (pid = 0; pid < NBPROC && procs[pid].pid != -1; pid++)
+        ;
     if (pid >= NBPROC)
-        return -3;
+        return -1;
+    // else
     return pid;
 }
 
 void ordonnance(void)
 {
     int old, i;
-    old = proc_actif;
+    if (file_procs[proc_actif] == NULL)
+    { // le processus actif s'est suicidé
+        old = pid_sauv;
+    }
+    else
+    {
+        old = getpid();
+    }
     // vérifier qu'il n'y a pas de nouveau processus avec une priorité supérieure
     // ou qu'il n'y a plus de processus activable ou actif de la priorité actuelle
     // (on vérifie avec le premier processus activable ou actif de la liste)
     for (i = 0; i < NBPROC && (file_procs[i] == NULL || (file_procs[i]->etat != ACTIVABLE && file_procs[i]->etat != ACTIF)); i++)
         ;
-    if (file_procs[i]->prio != file_procs[proc_actif]->prio)
+    if (file_procs[proc_actif] == NULL || file_procs[i]->prio != file_procs[proc_actif]->prio)
     {
         proc_actif = i;
     }
@@ -54,7 +55,7 @@ void ordonnance(void)
     {
         do
         {
-            if (proc_actif >= NBPROC - 1 || (file_procs[proc_actif + 1] != NULL && file_procs[proc_actif + 1]->prio < file_procs[old]->prio))
+            if (proc_actif >= NBPROC - 1 || (file_procs[proc_actif + 1] != NULL && file_procs[proc_actif + 1]->prio < file_procs[getproc(old)]->prio))
             {
                 proc_actif = 0;
             }
@@ -62,9 +63,9 @@ void ordonnance(void)
             {
                 proc_actif++;
             }
-        } while (file_procs[proc_actif] == NULL || file_procs[proc_actif]->prio != file_procs[old]->prio || (file_procs[proc_actif]->etat != ACTIVABLE && file_procs[proc_actif]->etat != ACTIF));
+        } while (file_procs[proc_actif] == NULL || file_procs[proc_actif]->prio != file_procs[getproc(old)]->prio || (file_procs[proc_actif]->etat != ACTIVABLE && file_procs[proc_actif]->etat != ACTIF));
     }
-    context_switch(old, proc_actif);
+    context_switch(old, getpid());
 }
 
 void exit_proc_actif(void)
@@ -114,6 +115,9 @@ void exit(int retval)
 int kill(int pid)
 {
     int proc = getproc(pid);
+    bool suicide = pid == getpid();
+    if (suicide) // on sauvegarde le pid pour aller chercher la zone de sauvegarde lors du contexte switch à venir
+        pid_sauv = pid;
     if (pid <= 0 || proc == -1 || file_procs[proc]->etat == ZOMBIE) // PID invalide
         return -1;
     if (file_procs[proc]->etat == ENDORMI)
@@ -144,8 +148,10 @@ int kill(int pid)
     }
     file_procs[proc]->retval = 0;
     exit_procs(proc);
-    if (proc == proc_actif)
+    if (suicide)
+    {
         ordonnance();
+    }
     return 0;
 }
 
@@ -173,7 +179,7 @@ int start(int (*pt_func)(void *), unsigned long ssize, int prio, const char *nam
         procs[pid].pile = NULL;
     }
     // on init la pile
-    procs[pid].taille_pile = ssize + 128 * sizeof(int);
+    procs[pid].taille_pile = ssize + 256 * sizeof(int);
     procs[pid].pile = mem_alloc(procs[pid].taille_pile);
     int index_int = procs[pid].taille_pile / 4;
     procs[pid].pile[index_int - 3] = (int)(pt_func);
@@ -228,38 +234,42 @@ int waitpid(int pid, int *retvalp)
     if (pid < 0) // on attend n'importe quel fils
     {
         int i;
+        int pid_fils = -1;
         for (i = 0; i < NBPROC && file_procs[proc_actif]->fils[i] < 0; i++)
-            ;
-        if (i >= NBPROC) // pas de fils existant
-        {
-            return -1;
-        }
-        int pid_fils = -1, index;
-        bool ok = false;
-        for (int i = 0; i < NBPROC && (pid_fils == -1 || (file_procs[getproc(pid_fils)] != NULL && file_procs[getproc(pid_fils)]->etat != ZOMBIE)); i++)
         {
             pid_fils = file_procs[proc_actif]->fils[i];
             if (pid_fils != -1 && file_procs[getproc(pid_fils)] != NULL && file_procs[getproc(pid_fils)]->etat == ZOMBIE)
             {
-                ok = true; // il existe un fils qui est déjà fini
-                index = i;
+                // il existe un fils qui est déjà fini
+                if (retvalp != NULL)
+                {
+                    *retvalp = file_procs[getproc(pid_fils)]->retval;
+                }
+                int proc = getproc(pid_fils);
+                file_procs[proc]->pid = -1;
+                file_procs[proc] = NULL;
+                file_procs[proc_actif]->fils[i] = -1;
+                return pid_fils;
             }
         }
-        if (!ok)
-        { // on met le père en attente d'un fils
-            int j;
-            for (j = 0; bloque_fils_file_procs[j].pid_pere != -1; j++)
-                ;
-            bloque_fils_file_procs[j].pid_pere = getpid();
-            bloque_fils_file_procs[j].pid_fils = pid;
-            file_procs[proc_actif]->etat = BLOQUE_FILS;
-            ordonnance();
-        }
-        for (int i = 0; i < NBPROC && (pid_fils == -1 || (file_procs[getproc(pid_fils)] != NULL && file_procs[getproc(pid_fils)]->etat != ZOMBIE)); i++)
+        if (i >= NBPROC) // pas de fils existant
+            return -1;
+        // else : il  existe au moins un fils mais pas de fils terminé
+        // on met le père en attente d'un fils
+        int j;
+        // on cherche la première case vide dans bloque_fils_file_procs
+        for (j = 0; bloque_fils_file_procs[j].pid_pere != -1; j++)
+            ;
+        bloque_fils_file_procs[j].pid_pere = getpid();
+        bloque_fils_file_procs[j].pid_fils = pid;
+        file_procs[proc_actif]->etat = BLOQUE_FILS;
+        ordonnance();
+        //  on se réveille et on va chercher le fils terminé
+        for (i = 0; i < NBPROC && (pid_fils == -1 || (file_procs[getproc(pid_fils)] != NULL && file_procs[getproc(pid_fils)]->etat != ZOMBIE)); i++)
         {
             pid_fils = file_procs[proc_actif]->fils[i];
-            index = i;
         }
+        i--;
         if (retvalp != NULL)
         {
             *retvalp = file_procs[getproc(pid_fils)]->retval;
@@ -267,7 +277,7 @@ int waitpid(int pid, int *retvalp)
         int proc = getproc(pid_fils);
         file_procs[proc]->pid = -1;
         file_procs[proc] = NULL;
-        file_procs[proc_actif]->fils[index] = -1;
+        file_procs[proc_actif]->fils[i] = -1;
         return pid_fils;
     }
     else // on attend le fils pid

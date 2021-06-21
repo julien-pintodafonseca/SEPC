@@ -83,7 +83,12 @@ void kernel_start(void)
 
 	/* horloge */
 	unsigned long quartz, ticks;
-	clock_settings(&quartz, &ticks);	  // réglage de l'horloge
+	clock_settings(&quartz, &ticks);	  // on récupère quartz et ticks
+	outb(0x34, 0x43);					  // réglage de l'horloge
+	outb(ticks % 256, 0x40);			  // ...
+	outb(ticks >> 8, 0x40);				  // ...
+	init_sleeping_file_procs();			  // initialise la liste des processus endormis
+	init_bloque_fils_file_procs();		  // initialise la liste des processus attendant un fils
 	masque_IRQ(0, 0);					  // démasquage de l'IRQ 0
 	init_traitant_IT(32, traitant_IT_32); // initialisation du traitant 32
 	print_timer = true;					  // affiche le timer
@@ -125,7 +130,7 @@ void kernel_start(void)
 	procs[0].prio = 0;
 
 	//init pile
-	procs[0].taille_pile = 4000 + 128 * sizeof(int);
+	procs[0].taille_pile = 4000 + 256 * sizeof(int);
 	procs[0].pile = mem_alloc(procs[0].taille_pile);
 	int index_int = procs[0].taille_pile / 4;
 	procs[0].pile[index_int - 3] = (int)(idle);

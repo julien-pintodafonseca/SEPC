@@ -4,7 +4,7 @@
 #include "stdint.h"
 #include "processus.h"
 
-#define CLOCKFREQ 300 // fréquence d'interruption (entre 100Hz et 1000Hz)
+#define CLOCKFREQ 100 // fréquence d'interruption (entre 100Hz et 1000Hz)
 #define SCHEDFREQ 50  // fréquence de préemption des processus (enter 50Hz et 1000Hz)
 
 bool print_timer; // permet d'afficher le timer ou non
