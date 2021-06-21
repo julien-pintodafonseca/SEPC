@@ -5,8 +5,7 @@
  *
  * Test d'utilisation d'une file comme espace de stockage temporaire.
  ******************************************************************************/
-static void
-test10(void)
+void test10(void)
 {
     int fid;
     char *str = "abcde";
