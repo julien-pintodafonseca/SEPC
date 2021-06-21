@@ -74,7 +74,7 @@ void kernel_start(void)
 	/* phase 4 - wait_clock() */
 	bool phase4 = false;
 	/* auto_test */
-	bool autoT = true;
+	bool autoT = false;
 
 	/* initialisation */
 	//call_debugger();      			  // useless with qemu -s -S

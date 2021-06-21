@@ -14,7 +14,7 @@ typedef enum ETAT
     ACTIF, // ELU
     ACTIVABLE,
     BLOQUE_SEMAPHORE,
-    BLOQUE_ES,
+    BLOQUE_ES, // File de messages
     BLOQUE_FILS,
     ENDORMI,
     ZOMBIE
