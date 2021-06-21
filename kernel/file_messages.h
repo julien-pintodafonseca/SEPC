@@ -11,8 +11,9 @@ typedef enum TYPE
 
 struct message
 {
-    TYPE type;   // type du message
+    //TYPE type;   // type du message
     int content; // contenu du message
+    bool active; // si inactif, on ne prend pas le message en compte et on peut le remplacer
 };
 
 struct msg_queue
@@ -30,5 +31,7 @@ int psend(int fid, int message);
 int preceive(int fid, int *message);
 int preset(int fid);
 int pcount(int fid, int *count);
+
+void sort_queue();
 
 #endif /* FILE_MESSAGES_H_ */

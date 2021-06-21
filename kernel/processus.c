@@ -163,7 +163,7 @@ int start(int (*pt_func)(void *), unsigned long ssize, int prio, const char *nam
     // On place le processus à la fin de la file
     int pid = pidlibre();
     procs[pid].pid = pid;
-    sprintf(procs[i].nom, "%s", name);
+    sprintf(procs[pid].nom, "%s", name);
     procs[pid].etat = ACTIVABLE;
     procs[pid].prio = prio;
     // on libère la pile si elle est init

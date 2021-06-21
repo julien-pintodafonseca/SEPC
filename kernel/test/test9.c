@@ -1,3 +1,5 @@
+#include "file_messages.h"
+
 /*******************************************************************************
  * Pseudo random number generator
  ******************************************************************************/
@@ -70,7 +72,7 @@ rand()
  *
  * Test de la sauvegarde des registres dans les appels systeme et interruptions
  ******************************************************************************/
-/*int nothing(void *arg)
+int nothing(void *arg)
 {
     (void)arg;
     return 0;
@@ -269,4 +271,4 @@ void read(int fid, char *buf, unsigned long len)
         assert(preceive(fid, &msg) == 0);
         buf[i] = msg;
     }
-}*/
+}

@@ -19,6 +19,7 @@
 #include "test/test7.c"
 #include "test/test8.c"
 #include "test/test9.c"
+#include "test/test10.c"
 
 void quit(void)
 {
@@ -37,9 +38,9 @@ struct
 	{"5", test5},
 	{"6", test6},
 	{"7", test7},
-	{"8", test8},
-	//{"9", test9},
-	//{"10", test10},
+	//{"8", test8},
+	{"9", test9},
+	{"10", test10},
 	//{"11", test11},
 	//{"12", test12},
 	//{"13", test13},
@@ -74,7 +75,7 @@ void kernel_start(void)
 	/* phase 4 - wait_clock() */
 	bool phase4 = false;
 	/* auto_test */
-	bool autoT = false;
+	bool autoT = true;
 
 	/* initialisation */
 	//call_debugger();      			  // useless with qemu -s -S
