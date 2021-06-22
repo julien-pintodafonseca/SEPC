@@ -23,6 +23,7 @@
 #include "test/test9.c"
 #include "test/test10.c"
 #include "test/test11.c"
+#include "test/test12.c"
 
 void quit(void)
 {
@@ -45,7 +46,7 @@ struct
 	{"9", test9},
 	{"10", test10},
 	{"11", test11},
-	//{"12", test12},
+	{"12", test12},
 	//{"13", test13},
 	//{"14", test14},
 	//{"15", test15},

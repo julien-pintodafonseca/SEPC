@@ -172,9 +172,33 @@ int preset(int fid)
 
 int pcount(int fid, int *count)
 {
-    // TODO
-    printf("%d%d", fid, *count);
-    return 0;
+    if (fid < 0 || fid > NBQUEUE)
+        return -1; // fid non valide
+
+    // si count n'est pas nul, elle y place une valeur négative égale à l'opposé du nombre de processus bloqués sur file vide,
+    // ou une valeur positive égale à la somme du nombre de messages dans la file et du nombre de processus bloqués sur file pleine.
+    int vPos = 0;
+    int vNeg = 0;
+    if (*count != 0)
+    {
+
+        for (int i = 0; i < NBPROC; i++)
+        {
+            if (file_procs[i] != NULL && file_procs[i]->etat == BLOQUE_FMSG_PLEINE)
+                vPos++;
+            if (file_procs[i] != NULL && file_procs[i]->etat == BLOQUE_FMSG_VIDE)
+                vNeg--;
+            if (waiting_for_available_place_file[i].pid != -1)
+                vPos++;
+        }
+    }
+
+    if (vNeg < 0)
+        return vNeg;
+    else if (vPos > 0)
+        return vPos;
+    else
+        return 0;
 }
 
 void init_waiting_for_available_place_file()
