@@ -6,6 +6,7 @@
 
 #include "processus.h"
 #include "horloge.h"
+#include "file_messages.h"
 
 void context_switch(int old, int new)
 {
@@ -106,10 +107,16 @@ void exit(int retval)
 {
     file_procs[proc_actif]->retval = retval;
     exit_procs(proc_actif);
-    sti();
+    /* vérification processus endormi */
+    check_if_need_wake_up();
+    /* vérification processus attendant un fils */
+    check_if_child_is_end();
+    /* vérification processus bloqué en file d'attente pleine */
+    check_if_there_is_available_place();
+    /* changement de processus actif */
+    ordonnance();
     while (1)
         ;
-    cli();
 }
 
 int kill(int pid)
