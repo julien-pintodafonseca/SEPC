@@ -8,6 +8,7 @@
 #include "affichage.h"
 #include "horloge.h"
 #include "processus.h"
+#include "file_messages.h"
 
 uint32_t *idt = (uint32_t *)(0x1000); // table des vecteurs d'interruption (longueur 256)
 unsigned long clk = 0;                // nombre d'interruptions
@@ -51,6 +52,8 @@ void tic_PIT(void)
         check_if_need_wake_up();
         /* vérification processus attendant un fils */
         check_if_child_is_end();
+        /* vérification processus bloqué en file d'attente pleine */
+        check_if_there_is_available_place();
         /* changement de processus actif */
         ordonnance();
     }

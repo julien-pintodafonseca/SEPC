@@ -4,6 +4,8 @@
 #include "stdio.h"
 #include "mem.h"
 
+#include "file_messages.h"
+
 #include "test/affichage-test.c"
 #include "test/processus-test1.c"
 #include "test/processus-test2.c"
@@ -93,6 +95,9 @@ void kernel_start(void)
 	masque_IRQ(0, 0);					  // démasquage de l'IRQ 0
 	init_traitant_IT(32, traitant_IT_32); // initialisation du traitant 32
 	print_timer = true;					  // affiche le timer
+
+	/* file de messages */
+	init_waiting_for_available_place_file();
 
 	/* tests spécifiques */
 	if (affichageT)

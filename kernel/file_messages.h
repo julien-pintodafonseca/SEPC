@@ -1,6 +1,8 @@
 #ifndef FILE_MESSAGES_H_
 #define FILE_MESSAGES_H_
 
+#include "processus.h"
+
 #define NBQUEUE 20 // nombre maximum de files
 
 typedef enum TYPE
@@ -25,6 +27,15 @@ struct msg_queue
 
 struct msg_queue queue[NBQUEUE];
 
+struct waiting_for_available_place
+{
+    int pid; // pid du processus
+    int fid; // identifiant de file
+    int msg; // message
+};
+
+struct waiting_for_available_place waiting_for_available_place_file[NBPROC]; // liste des processus dans l'état bloqué sur file pleine jusqu'à ce qu'une place soit disponible pour y mettre le message
+
 int pcreate(int count);
 int pdelete(int fid);
 int psend(int fid, int message);
@@ -32,6 +43,8 @@ int preceive(int fid, int *message);
 int preset(int fid);
 int pcount(int fid, int *count);
 
-void sort_queue();
+void init_waiting_for_available_place_file();
+void check_if_there_is_available_place();
+void tidy_up_queue();
 
 #endif /* FILE_MESSAGES_H_ */

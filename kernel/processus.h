@@ -14,8 +14,10 @@ typedef enum ETAT
 {
     ACTIF, // ELU
     ACTIVABLE,
+    BLOQUE_FMSG,        // Attente d'un message
+    BLOQUE_FMSG_PLEINE, // Attente d'un message en file pleine
+    BLOQUE_FMSG_VIDE,   // Attente d'un message en file vide
     BLOQUE_SEMAPHORE,
-    BLOQUE_ES, // File de messages
     BLOQUE_FILS,
     ENDORMI,
     ZOMBIE
@@ -32,9 +34,13 @@ struct processus
     int fils[NBPROC];
     int retval;
 
-    //gestion pile
+    // gestion pile
     int *pile;
     int taille_pile;
+
+    // file de messages
+    //int fid;
+    int lastmsg;
 };
 
 struct processus procs[NBPROC];
