@@ -31,10 +31,8 @@ struct waiting
 {
     int pid; // pid du processus
     int fid; // identifiant de file
-    int msg; // message
 };
 
-struct waiting waiting_for_available_place_file[NBPROC]; // liste des processus dans l'état bloqué sur file pleine jusqu'à ce qu'une place soit disponible pour y mettre le message
 struct waiting waiting_for_new_message_file[NBPROC];     // liste des processus dans l'état bloqué sur file vide jusqu'à ce qu'un nouveau message soit disponible pour réception
 
 int pcreate(int count);
@@ -44,9 +42,7 @@ int preceive(int fid, int *message);
 int preset(int fid);
 int pcount(int fid, int *count);
 
-void init_waiting_for_available_place_file();
 void init_waiting_for_new_message_file();
-void check_if_there_is_available_place();
 void check_if_there_is_new_message();
 void tidy_up_queue();
 

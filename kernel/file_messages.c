@@ -84,17 +84,6 @@ int psend(int fid, int message)
         // pour y mettre le message.
         file_procs[proc_actif]->etat = BLOQUE_FMSG_PLEINE;
         ordonnance();
-
-        int i = 0;
-        while (waiting_for_available_place_file[i].pid != -1)
-        {
-            if (i >= NBPROC)
-                return -42; // err
-            i++;
-        }
-        waiting_for_available_place_file[i].pid = getpid();
-        waiting_for_available_place_file[i].fid = fid;
-        waiting_for_available_place_file[i].msg = message;
     }
 
     if (_else)
@@ -220,91 +209,62 @@ int pcount(int fid, int *count)
     return 0;
 }
 
-void init_waiting_for_available_place_file()
-{
-    for (int i = 0; i < NBPROC; i++)
-    {
-        waiting_for_available_place_file[i].pid = -1;
-        waiting_for_available_place_file[i].fid = -1;
-        waiting_for_available_place_file[i].msg = -1;
-    }
-}
-
 void init_waiting_for_new_message_file()
 {
     for (int i = 0; i < NBPROC; i++)
     {
         waiting_for_new_message_file[i].pid = -1;
         waiting_for_new_message_file[i].fid = -1;
-        waiting_for_new_message_file[i].msg = -1;
-    }
-}
-
-void check_if_there_is_available_place()
-{
-    for (int i = 0; i < NBPROC; i++)
-    {
-        int pid = waiting_for_available_place_file[i].pid;
-        int fid = waiting_for_available_place_file[i].fid;
-
-        if (file_procs[getproc(pid)] != NULL && file_procs[getproc(pid)]->etat == BLOQUE_FMSG_PLEINE && !queue[fid].messages[queue[fid].size - 1].active)
-        {
-            // on ajoute le message à la file et on passe le processus à l'état activable
-            queue[fid].messages[queue[fid].size - 1].content = file_procs[getproc(pid)]->lastmsg;
-            queue[fid].messages[queue[fid].size - 1].active = true;
-            tidy_up_queue(fid); // on range la file dès qu'un message est ajouté
-            file_procs[getproc(pid)]->etat = ACTIVABLE;
-
-            // on retire le message/processus traité de waiting_for_available_place_file
-            waiting_for_available_place_file[i].pid = -1;
-            waiting_for_available_place_file[i].fid = -1;
-            waiting_for_available_place_file[i].msg = -1;
-
-            // on range waiting_for_available_place_file (pour garder l'ordre d'anciennecité)
-            int need_move = -1;
-            for (int j = 0; j < NBPROC; j++)
-            {
-                if (!(waiting_for_available_place_file[j].pid == -1) && need_move == -1)
-                    need_move = j;
-                if (waiting_for_available_place_file[j].pid == -1 && need_move != -1)
-                {
-                    int tmp_1 = waiting_for_available_place_file[j].pid;
-                    int tmp_2 = waiting_for_available_place_file[j].fid;
-                    int tmp_3 = waiting_for_available_place_file[j].msg;
-
-                    waiting_for_available_place_file[j].pid = -1;
-                    waiting_for_available_place_file[j].fid = -1;
-                    waiting_for_available_place_file[j].msg = -1;
-
-                    waiting_for_available_place_file[j].pid = tmp_1;
-                    waiting_for_available_place_file[j].fid = tmp_2;
-                    waiting_for_available_place_file[j].msg = tmp_3;
-                    need_move = -1;
-                    j = 0;
-                }
-            }
-
-            // file remplie, on s'arrête ici
-            break;
-        }
     }
 }
 
 void check_if_there_is_new_message()
-{
+{   
     for (int i = 0; i < NBPROC; i++)
     {
         int pid = waiting_for_new_message_file[i].pid;
         int fid = waiting_for_new_message_file[i].fid;
 
+        // chaque processus bloqué passe dans l'état activable lorsqu'il y a un nouveau message afin de garder la bonne priorité
         if (file_procs[getproc(pid)] != NULL && file_procs[getproc(pid)]->etat == BLOQUE_FMSG_VIDE && queue[fid].messages[0].active)
-        {
-            // on réactive le processus
             file_procs[getproc(pid)]->etat = ACTIVABLE;
-            ordonnance();
-            break;
+    }
+
+    for (int i = 0; i < NBPROC; i++)
+    {
+        int pid = waiting_for_new_message_file[i].pid;
+        int fid = waiting_for_new_message_file[i].fid;
+
+        if (file_procs[getproc(pid)] != NULL && file_procs[getproc(pid)]->etat != BLOQUE_FMSG_VIDE && queue[fid].messages[0].active)
+        {
+            // on retire chaque message/processus traités de waiting_for_new_message_file
+            waiting_for_new_message_file[i].pid = -1;
+            waiting_for_new_message_file[i].fid = -1;
+
+            // on range waiting_for_new_message_file (pour garder l'ordre d'anciennecité et supprimer les espaces du tableau)
+            int need_move = -1;
+            for (int j = 0; j < NBPROC; j++)
+            {
+                if (waiting_for_new_message_file[j].pid == -1 && need_move == -1)
+                    need_move = j;
+                if (waiting_for_new_message_file[j].pid != -1 && need_move != -1)
+                {
+                    int tmp_1 = waiting_for_new_message_file[j].pid;
+                    int tmp_2 = waiting_for_new_message_file[j].fid;
+
+                    waiting_for_new_message_file[j].pid = -1;
+                    waiting_for_new_message_file[j].fid = -1;
+
+                    waiting_for_new_message_file[need_move].pid = tmp_1;
+                    waiting_for_new_message_file[need_move].fid = tmp_2;
+                    need_move = -1;
+                    j = 0;
+                }
+            }
         }
     }
+
+    ordonnance();
 }
 
 // permet de ranger les messages du plus ancien au moins ancien, sans espace dans le tableau

@@ -41,11 +41,11 @@ struct
 	{"4", test4},
 	{"5", test5},
 	{"6", test6},
-	//{"7", test7},
+	{"7", test7},
 	{"8", test8},
 	{"9", test9},
 	{"10", test10},
-	//{"11", test11},
+	{"11", test11},
 	{"12", test12},
 	//{"13", test13},
 	//{"14", test14},
@@ -98,7 +98,6 @@ void kernel_start(void)
 	print_timer = true;					  // affiche le timer
 
 	/* file de messages */
-	init_waiting_for_available_place_file();
 	init_waiting_for_new_message_file();
 
 	/* tests spécifiques */

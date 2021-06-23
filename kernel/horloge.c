@@ -52,8 +52,6 @@ void tic_PIT(void)
         check_if_need_wake_up();
         /* vérification processus attendant un fils */
         check_if_child_is_end();
-        /* vérification processus bloqué en file d'attente pleine */
-        check_if_there_is_available_place();
         /* changement de processus actif */
         ordonnance();
     }
