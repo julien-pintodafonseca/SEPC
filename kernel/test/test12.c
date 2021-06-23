@@ -3,8 +3,7 @@
  *
  * Tests de rendez-vous sur une file de taille 1.
  ******************************************************************************/
-int
-rdv_proc(void *arg)
+int rdv_proc(void *arg)
 {
 	int fid = (int)arg;
 	int msg;
@@ -27,8 +26,7 @@ rdv_proc(void *arg)
 	return 0;
 }
 
-void
-test12(void)
+void test12(void)
 {
 	int fid;
 	int pid;

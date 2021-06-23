@@ -126,7 +126,7 @@ int preceive(int fid, int *message)
     // - le message lu est placé dans *message si message n'est pas nul, sinon il est oublié.
     if (queue[fid].messages[0].active)
     {
-        if (message != 0)
+        if (message != NULL)
             *message = queue[fid].messages[0].content;
         queue[fid].messages[0].active = false;
         tidy_up_queue(fid); // on range la file dès qu'un message est retiré
@@ -185,26 +185,28 @@ int pcount(int fid, int *count)
     // ou une valeur positive égale à la somme du nombre de messages dans la file et du nombre de processus bloqués sur file pleine.
     int vPos = 0;
     int vNeg = 0;
-    if (*count != 0)
+    if (count != NULL)
     {
-
+        for (int i = 0; i < queue[fid].size; i++)
+        {
+            if (queue[fid].messages[i].active)
+                vPos++;
+        }
         for (int i = 0; i < NBPROC; i++)
         {
             if (file_procs[i] != NULL && file_procs[i]->etat == BLOQUE_FMSG_PLEINE)
                 vPos++;
             if (file_procs[i] != NULL && file_procs[i]->etat == BLOQUE_FMSG_VIDE)
                 vNeg--;
-            if (waiting_for_available_place_file[i].pid != -1)
-                vPos++;
         }
     }
 
     if (vPos > 0)
-        return vPos;
+        *count = vPos;
     else if (vNeg < 0)
-        return vNeg;
-    else
-        return 0;
+        *count = vNeg;
+
+    return 0;
 }
 
 void init_waiting_for_available_place_file()
