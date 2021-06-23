@@ -38,8 +38,10 @@ int pdelete(int fid)
     // fait passer dans l'état activable tous les processus qui se trouvaient bloqués sur la file (s'il en existe)
     for (int i = 0; i < NBPROC; i++)
     {
-        if (file_procs[i] != NULL && file_procs[i]->etat == BLOQUE_FMSG)
+        if (file_procs[i] != NULL && file_procs[i]->etat == BLOQUE_FMSG) {
             file_procs[i]->etat = ACTIVABLE;
+            ordonnance();
+        }
     }
 
     return 0;
@@ -66,7 +68,7 @@ int psend(int fid, int message)
         // alors le processus le plus ancien dans la file parmi les plus prioritaires est débloqué et reçoit ce message.
         for (int i = 0; i < NBPROC; i++)
         {
-            if (file_procs[i] != NULL && file_procs[i]->etat == BLOQUE_FMSG)
+            if (file_procs[i] != NULL && file_procs[i]->etat == BLOQUE_FMSG && file_procs[i]->etat == BLOQUE_FMSG_PLEINE && file_procs[i]->etat == BLOQUE_FMSG_VIDE)
             {
                 file_procs[i]->etat = ACTIVABLE;
                 file_procs[i]->lastmsg = message;
@@ -104,6 +106,9 @@ int psend(int fid, int message)
         queue[fid].messages[queue[fid].size - 1].content = message;
         queue[fid].messages[queue[fid].size - 1].active = true;
         tidy_up_queue(fid); // on range la file dès qu'un message est ajouté
+
+        /* vérification processus bloqué en file d'attente vide */
+        check_if_there_is_new_message();
     }
 
     return 0;
@@ -146,9 +151,6 @@ int preceive(int fid, int *message)
                 tidy_up_queue(fid); // on range la file dès qu'un message est ajouté
                 file_procs[i]->etat = ACTIVABLE;
                 ordonnance();
-                // TODO : "L'obtention du premier message de la file peut nécessiter le passage dans l'état bloqué sur file vide jusqu'à ce qu'un autre processus exécute une primitive psend.
-                // Il est possible également, qu'après avoir été mis dans l'état bloqué sur file vide, le processus soit remis dans l'état activable par un autre processus ayant exécuté preset ou pdelete. Dans ce cas, la valeur de retour de preceive est strictement négative.
-                // Un processus bloqué sur file vide et dont la priorité est changée par chprio, est considéré comme le dernier processus (le plus jeune) de sa nouvelle priorité."
                 break;
             }
         }
@@ -156,8 +158,18 @@ int preceive(int fid, int *message)
     else if (empty)
     {
         // si aucun message n'est présent, le processus se bloque et sera relancé lors d'un dépôt ultérieur.
-        file_procs[proc_actif]->etat = BLOQUE_FMSG;
+        file_procs[proc_actif]->etat = BLOQUE_FMSG_VIDE;
+        int i = 0;
+        while (waiting_for_new_message_file[i].pid != -1)
+        {
+            if (i >= NBPROC)
+                return -42; // err
+            i++;
+        }
+        waiting_for_new_message_file[i].pid = getpid();
+        waiting_for_new_message_file[i].fid = fid;
         ordonnance();
+        preceive(fid, message);
     }
 
     return 0;
@@ -172,9 +184,7 @@ int preset(int fid)
     int count = queue[fid].size;
     pdelete(fid);
     pcreate(count);
-
-    // TODO : fait passer dans l'état activable ou actif (selon les priorités) tous les processus, s'il en existe, se trouvant dans l'état bloqué sur file pleine ou dans l'état bloqué sur file vide (ces processus auront une valeur strictement négative comme valeur de retour de psend ou preceive)
-
+    
     return 0;
 }
 
@@ -198,7 +208,7 @@ int pcount(int fid, int *count)
         {
             if (file_procs[i] != NULL && file_procs[i]->etat == BLOQUE_FMSG_PLEINE)
                 vPos++;
-            if (file_procs[i] != NULL && file_procs[i]->etat == BLOQUE_FMSG_VIDE)
+            if (file_procs[i] != NULL && file_procs[i]->etat == BLOQUE_FMSG_VIDE) 
                 vNeg--;
         }
     }
@@ -207,6 +217,8 @@ int pcount(int fid, int *count)
         *count = vPos;
     else if (vNeg < 0)
         *count = vNeg;
+    else 
+        *count = 0;
 
     return 0;
 }
@@ -218,6 +230,16 @@ void init_waiting_for_available_place_file()
         waiting_for_available_place_file[i].pid = -1;
         waiting_for_available_place_file[i].fid = -1;
         waiting_for_available_place_file[i].msg = -1;
+    }
+}
+
+void init_waiting_for_new_message_file()
+{
+    for (int i = 0; i < NBPROC; i++)
+    {
+        waiting_for_new_message_file[i].pid = -1;
+        waiting_for_new_message_file[i].fid = -1;
+        waiting_for_new_message_file[i].msg = -1;
     }
 }
 
@@ -266,6 +288,23 @@ void check_if_there_is_available_place()
             }
 
             // file remplie, on s'arrête ici
+            break;
+        }
+    }
+}
+
+void check_if_there_is_new_message()
+{
+    for (int i = 0; i < NBPROC; i++)
+    {
+        int pid = waiting_for_new_message_file[i].pid;
+        int fid = waiting_for_new_message_file[i].fid;
+
+        if (file_procs[getproc(pid)] != NULL && file_procs[getproc(pid)]->etat == BLOQUE_FMSG_VIDE && queue[fid].messages[0].active)
+        {
+            // on réactive le processus
+            file_procs[getproc(pid)]->etat = ACTIVABLE;
+            ordonnance();
             break;
         }
     }
