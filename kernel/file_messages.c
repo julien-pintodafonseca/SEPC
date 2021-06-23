@@ -30,7 +30,7 @@ int pcreate(int count)
 
 int pdelete(int fid)
 {
-    if (fid < 0 || fid > NBQUEUE)
+    if (fid < 0 || fid > NBQUEUE || queue[fid].messages == NULL)
         return -1;                                                           // fid non valide
     mem_free(queue[fid].messages, queue[fid].size * sizeof(struct message)); // on libère une file de messages de capacité size
     queue[fid].messages = NULL;
@@ -49,7 +49,7 @@ int pdelete(int fid)
 
 int psend(int fid, int message)
 {
-    if (fid < 0 || fid > NBQUEUE)
+    if (fid < 0 || fid > NBQUEUE || queue[fid].messages == NULL)
         return -1; // fid non valide
 
     bool empty = false;
@@ -95,9 +95,6 @@ int psend(int fid, int message)
         waiting_for_available_place_file[i].pid = getpid();
         waiting_for_available_place_file[i].fid = fid;
         waiting_for_available_place_file[i].msg = message;
-
-        // TODO : Il est possible également, qu'après avoir été mis dans l'état bloqué sur file pleine, le processus soit remis dans l'état activable
-        // par un autre processus ayant exécuté preset ou pdelete. Dans ce cas, la valeur de retour de psend est strictement négative.
     }
 
     if (_else)
@@ -116,7 +113,7 @@ int psend(int fid, int message)
 
 int preceive(int fid, int *message)
 {
-    if (fid < 0 || fid > NBQUEUE)
+    if (fid < 0 || fid > NBQUEUE || queue[fid].messages == NULL)
         return -1; // fid non valide
 
     bool empty = false;
@@ -177,7 +174,7 @@ int preceive(int fid, int *message)
 
 int preset(int fid)
 {
-    if (fid < 0 || fid > NBQUEUE)
+    if (fid < 0 || fid > NBQUEUE || queue[fid].messages == NULL)
         return -1; // fid non valide
 
     // on réinitialise la file
@@ -190,7 +187,7 @@ int preset(int fid)
 
 int pcount(int fid, int *count)
 {
-    if (fid < 0 || fid > NBQUEUE)
+    if (fid < 0 || fid > NBQUEUE || queue[fid].messages == NULL)
         return -1; // fid non valide
 
     // si count n'est pas nul, elle y place une valeur négative égale à l'opposé du nombre de processus bloqués sur file vide,
