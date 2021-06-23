@@ -58,6 +58,8 @@ int psend(int fid, int message)
     if (queue[fid].messages[queue[fid].size - 1].active)
         full = true; // file pleine
 
+    bool _else = true;
+
     if (empty)
     {
         // si la file est vide et que des processus sont bloqués en attente de message,
@@ -68,6 +70,8 @@ int psend(int fid, int message)
             {
                 file_procs[i]->etat = ACTIVABLE;
                 file_procs[i]->lastmsg = message;
+                ordonnance();
+                _else = false;
                 break;
             }
         }
@@ -92,7 +96,8 @@ int psend(int fid, int message)
         // TODO : Il est possible également, qu'après avoir été mis dans l'état bloqué sur file pleine, le processus soit remis dans l'état activable
         // par un autre processus ayant exécuté preset ou pdelete. Dans ce cas, la valeur de retour de psend est strictement négative.
     }
-    else
+
+    if (_else)
     {
         // sinon, la file n'est pas pleine et aucun processus n'est bloqué en attente de message ; le message est alors déposé directement dans la file.
         queue[fid].messages[queue[fid].size - 1].content = message;
@@ -139,6 +144,7 @@ int preceive(int fid, int *message)
                 queue[fid].messages[queue[fid].size - 1].active = true;
                 tidy_up_queue(fid); // on range la file dès qu'un message est ajouté
                 file_procs[i]->etat = ACTIVABLE;
+                ordonnance();
                 // TODO : "L'obtention du premier message de la file peut nécessiter le passage dans l'état bloqué sur file vide jusqu'à ce qu'un autre processus exécute une primitive psend.
                 // Il est possible également, qu'après avoir été mis dans l'état bloqué sur file vide, le processus soit remis dans l'état activable par un autre processus ayant exécuté preset ou pdelete. Dans ce cas, la valeur de retour de preceive est strictement négative.
                 // Un processus bloqué sur file vide et dont la priorité est changée par chprio, est considéré comme le dernier processus (le plus jeune) de sa nouvelle priorité."
@@ -193,10 +199,10 @@ int pcount(int fid, int *count)
         }
     }
 
-    if (vNeg < 0)
-        return vNeg;
-    else if (vPos > 0)
+    if (vPos > 0)
         return vPos;
+    else if (vNeg < 0)
+        return vNeg;
     else
         return 0;
 }
