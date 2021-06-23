@@ -7,7 +7,7 @@
 
 int pcreate(int count)
 {
-    if (count <= 0)
+    if (count <= 0 || count >= MAX_COUNT)
         return -1; // count non valide
 
     int fid = 0;
@@ -38,7 +38,8 @@ int pdelete(int fid)
     // fait passer dans l'état activable tous les processus qui se trouvaient bloqués sur la file (s'il en existe)
     for (int i = 0; i < NBPROC; i++)
     {
-        if (file_procs[i] != NULL && file_procs[i]->etat == BLOQUE_FMSG) {
+        if (file_procs[i] != NULL && file_procs[i]->etat == BLOQUE_FMSG)
+        {
             file_procs[i]->etat = ACTIVABLE;
             ordonnance();
         }
@@ -50,7 +51,9 @@ int pdelete(int fid)
 int psend(int fid, int message)
 {
     if (fid < 0 || fid > NBQUEUE || queue[fid].messages == NULL)
+    {
         return -1; // fid non valide
+    }
 
     bool empty = false;
     if (!queue[fid].messages[0].active)
@@ -170,7 +173,7 @@ int preset(int fid)
     int count = queue[fid].size;
     pdelete(fid);
     pcreate(count);
-    
+
     return 0;
 }
 
@@ -194,7 +197,7 @@ int pcount(int fid, int *count)
         {
             if (file_procs[i] != NULL && file_procs[i]->etat == BLOQUE_FMSG_PLEINE)
                 vPos++;
-            if (file_procs[i] != NULL && file_procs[i]->etat == BLOQUE_FMSG_VIDE) 
+            if (file_procs[i] != NULL && file_procs[i]->etat == BLOQUE_FMSG_VIDE)
                 vNeg--;
         }
     }
@@ -203,7 +206,7 @@ int pcount(int fid, int *count)
         *count = vPos;
     else if (vNeg < 0)
         *count = vNeg;
-    else 
+    else
         *count = 0;
 
     return 0;
@@ -219,7 +222,7 @@ void init_waiting_for_new_message_file()
 }
 
 void check_if_there_is_new_message()
-{   
+{
     for (int i = 0; i < NBPROC; i++)
     {
         int pid = waiting_for_new_message_file[i].pid;

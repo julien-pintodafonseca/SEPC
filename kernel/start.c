@@ -24,6 +24,12 @@
 #include "test/test10.c"
 #include "test/test11.c"
 #include "test/test12.c"
+#include "test/test13.c"
+#include "test/test14.c"
+#include "test/test15.c"
+#include "test/test16.c"
+#include "test/test17.c"
+#include "test/test20.c"
 
 void quit(void)
 {
@@ -38,23 +44,23 @@ struct
 	{"1", test1},
 	{"2", test2},
 	{"3", test3},
-	{"4", test4},
+	//{"4", test4},
 	{"5", test5},
 	{"6", test6},
-	{"7", test7},
+	//{"7", test7},
 	{"8", test8},
-	{"9", test9},
+	//{"9", test9},
 	{"10", test10},
 	{"11", test11},
 	{"12", test12},
-	//{"13", test13},
-	//{"14", test14},
-	//{"15", test15},
-	//{"16", test16},
-	//{"17", test17},
-	//{"18", test18},
-	//{"19", test19},
-	//{"20", test20},
+	//{"13", test13}, // NOK
+	//{"14", test14}, // NOK
+	{"15", test15},
+	{"16", test16},
+	//{"17", test17}, // NOK
+	//{"18", test18}, // Il manque des fonctions
+	//{"19", test19}, // Il manque des fonctions
+	//{"20", test20}, // NOK
 	{"q", quit},
 };
 

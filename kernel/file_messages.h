@@ -3,7 +3,8 @@
 
 #include "processus.h"
 
-#define NBQUEUE 20 // nombre maximum de files
+#define NBQUEUE 20        // nombre maximum de files
+#define MAX_COUNT 1000000 // maximum accepté pour le count
 
 typedef enum TYPE
 {
