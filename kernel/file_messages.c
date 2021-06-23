@@ -81,6 +81,7 @@ int psend(int fid, int message)
         // si la file est pleine, le processus appelant passe dans l'état bloqué sur file pleine jusqu'à ce qu'une place soit disponible, dans la file,
         // pour y mettre le message.
         file_procs[proc_actif]->etat = BLOQUE_FMSG_PLEINE;
+        ordonnance();
 
         int i = 0;
         while (waiting_for_available_place_file[i].pid != -1)
@@ -156,6 +157,7 @@ int preceive(int fid, int *message)
     {
         // si aucun message n'est présent, le processus se bloque et sera relancé lors d'un dépôt ultérieur.
         file_procs[proc_actif]->etat = BLOQUE_FMSG;
+        ordonnance();
     }
 
     return 0;
