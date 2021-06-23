@@ -3,12 +3,18 @@
 
 #include "stdint.h"
 #include "queue.h"
+#include "stdio.h"
+#include "stdbool.h"
+#include "cpu.h"
 
 #define TAILLE_NOM 20
 #define TAILLE_SAUV 5
 #define MAX_INT 2147483647
 #define NBPROC 30
 #define MAXPRIO 256
+
+#include "processus.h"
+#include "horloge.h"
 
 typedef enum ETAT
 {
@@ -49,27 +55,20 @@ int proc_actif, pid_sauv;
 
 extern void ctx_sw(int *, int *);
 
-/* Phase 2 : Traitement de l'horloge et des processus */
-#include "stdio.h"
-#include "stdbool.h"
-#include "cpu.h"
-
-#include "processus.h"
-#include "horloge.h"
-
-void context_switch(int old, int new);
-int pidlibre(void);
-void ordonnance(void);
-void exit_proc_actif(void);
-void exit_procs(int processus);
-void exit(int retval);
-int kill(int pid);
+void initialize(int (*pt_func)(void *), const char *name);
 int start(int (*pt_func)(void *), unsigned long ssize, int prio, const char *name, void *arg);
-int waitpid(int pid, int *retvalp);
+int pidlibre(void);
+int getpid(void);
 int getproc(int pid);
 int getprio(int pid);
+void ordonnance(void);
+void context_switch(int old, int new);
+void exit_proc_actif(void);
+void exit(int retval);
+void exit_procs(int processus);
+int kill(int pid);
+int waitpid(int pid, int *retvalp);
 int chprio(int pid, int newprio);
-int getpid(void);
 void idle(void);
 
 #endif /* PROCESSUS_H_ */

@@ -45,8 +45,8 @@ struct
 	{"8", test8},
 	{"9", test9},
 	{"10", test10},
-	{"11", test11},
-	{"12", test12},
+	//{"11", test11},
+	//{"12", test12},
 	//{"13", test13},
 	//{"14", test14},
 	//{"15", test15},
@@ -127,27 +127,7 @@ void kernel_start(void)
 		}
 	}
 
-	for (int i = 0; i < NBPROC; i++)
-	{
-		procs[i].pid = -1;
-	}
-	procs[0].pid = 0;
-	sprintf(procs[0].nom, "%p", "idle");
-	procs[0].etat = ACTIF;
-	procs[0].prio = 0;
-
-	//init pile
-	procs[0].taille_pile = 4000 + 256 * sizeof(int);
-	procs[0].pile = mem_alloc(procs[0].taille_pile);
-	int index_int = procs[0].taille_pile / 4;
-	procs[0].pile[index_int - 3] = (int)(idle);
-	procs[0].zone_sauv[1] = (int)(&procs[0].pile[index_int - 3]);
-	procs[0].parent = -1;
-	for (int n = 0; n < NBPROC; n++)
-	{
-		procs[0].fils[n] = -1;
-	}
-	file_procs[0] = &procs[0];
+	initialize((int (*)(void *))(idle), "idle");
 	idle();
 	return;
 }
