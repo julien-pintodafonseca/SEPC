@@ -9,8 +9,7 @@ struct tst16
     int fid;
 };
 
-static int
-proc_16_1(void *arg)
+int proc_16_1(void *arg)
 {
     struct tst16 *p = arg;
     int i, msg;
@@ -23,8 +22,7 @@ proc_16_1(void *arg)
     return 0;
 }
 
-static int
-proc_16_2(void *arg)
+int proc_16_2(void *arg)
 {
     struct tst16 *p = arg;
     int i, msg;
@@ -36,8 +34,7 @@ proc_16_2(void *arg)
     return 0;
 }
 
-static int
-proc_16_3(void *arg)
+int proc_16_3(void *arg)
 {
     struct tst16 *p = arg;
     int i;

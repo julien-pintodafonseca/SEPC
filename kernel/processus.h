@@ -20,7 +20,6 @@ typedef enum ETAT
 {
     ACTIF, // ELU
     ACTIVABLE,
-    BLOQUE_FMSG,        // Attente d'un message
     BLOQUE_FMSG_PLEINE, // Attente d'un message en file pleine
     BLOQUE_FMSG_VIDE,   // Attente d'un message en file vide
     BLOQUE_SEMAPHORE,
@@ -69,6 +68,6 @@ void exit_procs(int processus);
 int kill(int pid);
 int waitpid(int pid, int *retvalp);
 int chprio(int pid, int newprio);
-void idle(void);
+void print_procs(void);
 
 #endif /* PROCESSUS_H_ */

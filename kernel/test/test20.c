@@ -7,18 +7,17 @@
  *
  * Le repas des philosophes.
  ******************************************************************************/
-static char f[NR_PHILO]; /* tableau des fourchettes, contient soit 1 soit 0 selon si elle
+char f[NR_PHILO]; /* tableau des fourchettes, contient soit 1 soit 0 selon si elle
 			    est utilisee ou non */
 
-static char bloque[NR_PHILO]; /* memorise l'etat du philosophe, contient 1 ou 0 selon que le philosophe
+char bloque[NR_PHILO]; /* memorise l'etat du philosophe, contient 1 ou 0 selon que le philosophe
 				 est en attente d'une fourchette ou non */
 
-static struct sem mutex_philo; /* exclusion mutuelle */
-static struct sem s[NR_PHILO]; /* un semaphore par philosophe */
-static int etat[NR_PHILO];
+struct sem mutex_philo; /* exclusion mutuelle */
+struct sem s[NR_PHILO]; /* un semaphore par philosophe */
+int etat[NR_PHILO];
 
-static void
-affiche_etat()
+void affiche_etat()
 {
     int i;
     printf("%c", 13);
@@ -39,8 +38,7 @@ affiche_etat()
     }
 }
 
-static void
-waitloop(void)
+void waitloop(void)
 {
     int j;
     for (j = 0; j < 5000; j++)
@@ -52,8 +50,7 @@ waitloop(void)
     }
 }
 
-static void
-penser(long i)
+void penser(long i)
 {
     xwait(&mutex_philo); /* DEBUT SC */
     etat[i] = 'p';
@@ -66,8 +63,7 @@ penser(long i)
     xsignal(&mutex_philo); /* Fin SC */
 }
 
-static void
-manger(long i)
+void manger(long i)
 {
     xwait(&mutex_philo); /* DEBUT SC */
     etat[i] = 'm';
@@ -80,15 +76,13 @@ manger(long i)
     xsignal(&mutex_philo); /* Fin SC */
 }
 
-static int
-test(int i)
+int test(int i)
 {
     /* les fourchettes du philosophe i sont elles libres ? */
     return ((!f[i] && (!f[(i + 1) % NR_PHILO])));
 }
 
-static void
-prendre_fourchettes(int i)
+void prendre_fourchettes(int i)
 {
     /* le philosophe i prend des fourchettes */
 
@@ -107,8 +101,7 @@ prendre_fourchettes(int i)
     xwait(&s[i]);          /* on attend au cas o on ne puisse pas prendre 2 fourchettes */
 }
 
-static void
-poser_fourchettes(int i)
+void poser_fourchettes(int i)
 {
 
     xwait(&mutex_philo); /* DEBUT SC */
@@ -134,8 +127,7 @@ poser_fourchettes(int i)
     xsignal(&mutex_philo); /* Fin SC */
 }
 
-static int
-philosophe(void *arg)
+int philosophe(void *arg)
 {
     /* comportement d'un seul philosophe */
     int i = (int)arg;
@@ -155,8 +147,7 @@ philosophe(void *arg)
     return 0;
 }
 
-static int
-launch_philo()
+int launch_philo()
 {
 
     int i, pid;

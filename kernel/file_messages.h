@@ -4,7 +4,7 @@
 #include "processus.h"
 
 #define MAX_COUNT 1000000 // maximum accepté pour le count
-#define NBQUEUE 20 // nombre maximum de files
+#define NBQUEUE 20        // nombre maximum de files
 
 struct message
 {
@@ -26,7 +26,10 @@ struct waiting
     int fid; // identifiant de file
 };
 
-struct waiting waiting_for_new_message_file[NBPROC];     // liste des processus dans l'état bloqué sur file vide jusqu'à ce qu'un nouveau message soit disponible pour réception
+// liste des processus dans l'état bloqué sur file vide
+struct waiting waiting_for_new_message_file[NBPROC];
+// liste des processus dans l'état bloqué sur file pleine
+struct waiting waiting_for_new_place_file[NBPROC];
 
 int pcreate(int count);
 int pdelete(int fid);
@@ -35,7 +38,7 @@ int preceive(int fid, int *message);
 int preset(int fid);
 int pcount(int fid, int *count);
 
-void init_waiting_for_new_message_file();
+void init_waiting_files();
 void check_if_there_is_new_message();
 void tidy_up_queue();
 void tidy_up_waiting(struct waiting *waiting_for_something_file);

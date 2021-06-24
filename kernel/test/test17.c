@@ -3,12 +3,11 @@
  *
  * On teste des limites de capacite
  ******************************************************************************/
-static int ids[1200];
+int ids[1200];
 
-static const int heap_len = 15 << 20;
+const int heap_len = 15 << 20;
 
-static int
-proc_return(void *arg)
+int proc_return(void *arg)
 {
     return (int)arg;
 }

@@ -3,7 +3,7 @@
  *
  * Tuer des processus en attente sur file
  ******************************************************************************/
-static int
+int
 pmsg1(void *arg)
 {
     int fid1 = (int)arg;
@@ -17,7 +17,7 @@ pmsg1(void *arg)
     return 1;
 }
 
-static int
+int
 pmsg2(void *arg)
 {
     int fid1 = (int)arg;

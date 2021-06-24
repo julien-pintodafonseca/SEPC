@@ -64,6 +64,7 @@ int start(int (*pt_func)(void *), unsigned long ssize, int prio, const char *nam
     sprintf(procs[pid].nom, "%s", name);
     procs[pid].etat = ACTIVABLE;
     procs[pid].prio = prio;
+    procs[pid].del = false;
     // on libère la pile si elle est init
     if (procs[pid].pile != NULL)
     {
@@ -354,6 +355,12 @@ int waitpid(int pid, int *retvalp)
         int i;
         int pid_fils = -1;
         for (i = 0; i < NBPROC && file_procs[proc_actif]->fils[i] < 0; i++)
+            ;
+        if (i >= NBPROC) // pas de fils existant
+            return -1;
+        // else : il existe au moins un fils
+        // on cherche un processus déjà fini
+        for (i = 0; i < NBPROC; i++)
         {
             pid_fils = file_procs[proc_actif]->fils[i];
             if (pid_fils != -1 && file_procs[getproc(pid_fils)] != NULL && procs[pid_fils].etat == ZOMBIE)
@@ -370,9 +377,7 @@ int waitpid(int pid, int *retvalp)
                 return pid_fils;
             }
         }
-        if (i >= NBPROC) // pas de fils existant
-            return -1;
-        // else : il  existe au moins un fils mais pas de fils terminé
+        // aucun fils déjà fini
         // on met le père en attente d'un fils
         int j;
         // on cherche la première case vide dans bloque_fils_file_procs
@@ -452,9 +457,54 @@ int chprio(int pid, int newprio)
     {
         return -2; // newprio invalide
     }
+
     int oldprio = getprio(pid);
     file_procs[p]->prio = newprio;
     struct processus *tmp;
+
+    // Un processus bloqué sur file vide et dont la priorité est changée
+    // par chprio, est considéré comme le dernier processus (le plus jeune)
+    // de sa nouvelle priorité.
+    for (int i = 0; i < NBPROC; i++)
+    {
+        if (waiting_for_new_message_file[i].pid == pid)
+        {
+            int tmp_1 = waiting_for_new_message_file[i].pid;
+            int tmp_2 = waiting_for_new_message_file[i].fid;
+            waiting_for_new_message_file[i].pid = -1;
+            waiting_for_new_message_file[i].fid = -1;
+            tidy_up_waiting(&waiting_for_new_message_file[0]);
+            int j;
+            for (j = 0; j < NBPROC && waiting_for_new_message_file[j].pid != -1 && (waiting_for_new_message_file[j].fid != tmp_2 || procs[waiting_for_new_message_file[j].pid].prio >= newprio); j++)
+                ;
+            for (int n = NBPROC - 1; n > j; n--)
+            {
+                waiting_for_new_message_file[n].pid = waiting_for_new_message_file[n - 1].pid;
+                waiting_for_new_message_file[n].fid = waiting_for_new_message_file[n - 1].fid;
+            }
+            waiting_for_new_message_file[j].pid = tmp_1;
+            waiting_for_new_message_file[j].fid = tmp_2;
+        }
+        else if (waiting_for_new_place_file[i].pid == pid)
+        {
+            int tmp_1 = waiting_for_new_place_file[i].pid;
+            int tmp_2 = waiting_for_new_place_file[i].fid;
+            waiting_for_new_place_file[i].pid = -1;
+            waiting_for_new_place_file[i].fid = -1;
+            tidy_up_waiting(&waiting_for_new_place_file[0]);
+            int j;
+            for (j = 0; j < NBPROC && waiting_for_new_place_file[j].pid != -1 && (waiting_for_new_place_file[j].fid != tmp_2 || procs[waiting_for_new_place_file[j].pid].prio >= newprio); j++)
+                ;
+            for (int n = NBPROC - 1; n > j; n--)
+            {
+                waiting_for_new_place_file[n].pid = waiting_for_new_place_file[n - 1].pid;
+                waiting_for_new_place_file[n].fid = waiting_for_new_place_file[n - 1].fid;
+            }
+            waiting_for_new_place_file[j].pid = tmp_1;
+            waiting_for_new_place_file[j].fid = tmp_2;
+        }
+    }
+
     // On réajuste la place du processus dans la file d'attente
     for (; p >= 1; p--)
     {

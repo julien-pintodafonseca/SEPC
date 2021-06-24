@@ -10,8 +10,7 @@ struct psender
     const char *data;
 };
 
-static int
-psender(void *arg)
+int psender(void *arg)
 {
     struct psender *ps = arg;
     int i;
@@ -24,8 +23,7 @@ psender(void *arg)
     return 0;
 }
 
-static int
-preceiver(void *arg)
+int preceiver(void *arg)
 {
     struct psender *ps = arg;
     int i, msg;

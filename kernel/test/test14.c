@@ -3,8 +3,7 @@
  *
  * Tests de preset et pdelete
  ******************************************************************************/
-static int
-psender1(void *arg)
+int psender1(void *arg)
 {
     int fid1 = (int)arg;
     int fid2;
@@ -30,8 +29,7 @@ psender1(void *arg)
     return 0;
 }
 
-static int
-psender2(void *arg)
+int psender2(void *arg)
 {
     int fid1 = (int)arg;
     int fid2;

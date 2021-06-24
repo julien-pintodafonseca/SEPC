@@ -44,18 +44,18 @@ struct
 	{"1", test1},
 	{"2", test2},
 	{"3", test3},
-	//{"4", test4},
+	{"4", test4},
 	{"5", test5},
 	{"6", test6},
-	//{"7", test7},
+	{"7", test7},
 	{"8", test8},
-	//{"9", test9},
+	{"9", test9},
 	{"10", test10},
 	{"11", test11},
 	{"12", test12},
-	{"13", test13}, // NOK
-	//{"14", test14}, // NOK
-	{"15", test15},
+	{"13", test13},
+	{"14", test14},
+	//{"15", test15}, // NOK
 	{"16", test16},
 	//{"17", test17}, // NOK
 	//{"18", test18}, // Il manque des fonctions
@@ -104,7 +104,7 @@ void kernel_start(void)
 	print_timer = true;					  // affiche le timer
 
 	/* file de messages */
-	init_waiting_for_new_message_file();
+	init_waiting_files();
 
 	/* tests spécifiques */
 	if (affichageT)
