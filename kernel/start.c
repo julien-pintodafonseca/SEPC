@@ -53,7 +53,7 @@ struct
 	{"10", test10},
 	{"11", test11},
 	{"12", test12},
-	//{"13", test13}, // NOK
+	{"13", test13}, // NOK
 	//{"14", test14}, // NOK
 	{"15", test15},
 	{"16", test16},

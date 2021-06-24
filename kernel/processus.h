@@ -45,8 +45,8 @@ struct processus
     int taille_pile;
 
     // file de messages
-    //int fid;
     int lastmsg;
+    bool del;
 };
 
 struct processus procs[NBPROC];

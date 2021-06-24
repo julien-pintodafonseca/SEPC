@@ -38,8 +38,17 @@ int pdelete(int fid)
     // fait passer dans l'état activable tous les processus qui se trouvaient bloqués sur la file (s'il en existe)
     for (int i = 0; i < NBPROC; i++)
     {
-        if (file_procs[i] != NULL && file_procs[i]->etat == BLOQUE_FMSG)
+        if (waiting_for_new_message_file[i].fid == fid)
         {
+            waiting_for_new_message_file[i].pid = -1;
+            waiting_for_new_message_file[i].fid = -1;
+        }
+    }
+    for (int i = 0; i < NBPROC; i++)
+    {
+        if (file_procs[i] != NULL && (file_procs[i]->etat == BLOQUE_FMSG || file_procs[i]->etat == BLOQUE_FMSG_VIDE || file_procs[i]->etat == BLOQUE_FMSG_PLEINE))
+        {
+            file_procs[i]->del = true;
             file_procs[i]->etat = ACTIVABLE;
             ordonnance();
         }
@@ -55,23 +64,15 @@ int psend(int fid, int message)
         return -1; // fid non valide
     }
 
-    bool empty = false;
-    if (!queue[fid].messages[0].active)
-        empty = true; // file vide
-
-    bool full = false;
-    if (queue[fid].messages[queue[fid].size - 1].active)
-        full = true; // file pleine
-
     bool _else = true;
 
-    if (empty)
+    if (!queue[fid].messages[0].active)
     {
         // si la file est vide et que des processus sont bloqués en attente de message,
         // alors le processus le plus ancien dans la file parmi les plus prioritaires est débloqué et reçoit ce message.
         for (int i = 0; i < NBPROC; i++)
         {
-            if (file_procs[i] != NULL && file_procs[i]->etat == BLOQUE_FMSG && file_procs[i]->etat == BLOQUE_FMSG_PLEINE && file_procs[i]->etat == BLOQUE_FMSG_VIDE)
+            if (file_procs[i] != NULL && file_procs[i]->etat == BLOQUE_FMSG)
             {
                 file_procs[i]->etat = ACTIVABLE;
                 file_procs[i]->lastmsg = message;
@@ -81,29 +82,13 @@ int psend(int fid, int message)
             }
         }
     }
-    else if (full)
+    else if (queue[fid].messages[queue[fid].size - 1].active)
     {
         // si la file est pleine, le processus appelant passe dans l'état bloqué sur file pleine jusqu'à ce qu'une place soit disponible, dans la file,
         // pour y mettre le message.
         file_procs[proc_actif]->etat = BLOQUE_FMSG_PLEINE;
-        waiting_for_available_place_file[NBPROC - 1].pid = getpid();
-        waiting_for_available_place_file[NBPROC - 1].fid = fid;
-        tidy_up_waiting(&waiting_for_available_place_file[0]); // on range la file dès qu'une entrée est ajoutée
         ordonnance();
-        for (int i = 0; i < NBPROC; i++)
-        {
-            int pid = waiting_for_available_place_file[i].pid;
-            if (pid == getpid() && file_procs[getproc(pid)] != NULL)
-            {
-                // on retire l'entrée traitée sur waiting_for_available_place_file
-                waiting_for_available_place_file[i].pid = -1;
-                waiting_for_available_place_file[i].fid = -1;
-
-                // on range la file dès qu'une entrée est retirée
-                tidy_up_waiting(&waiting_for_available_place_file[0]);
-            }
-            break;
-        }
+        _else = false;
     }
 
     if (_else)
@@ -111,6 +96,7 @@ int psend(int fid, int message)
         // sinon, la file n'est pas pleine et aucun processus n'est bloqué en attente de message ; le message est alors déposé directement dans la file.
         queue[fid].messages[queue[fid].size - 1].content = message;
         queue[fid].messages[queue[fid].size - 1].active = true;
+        printf("%c\n", message); // TODO : ligne à supprimer
         tidy_up_queue(fid); // on range la file dès qu'un message est ajouté
 
         /* vérification processus bloqué en file d'attente vide */
@@ -125,13 +111,8 @@ int preceive(int fid, int *message)
     if (fid < 0 || fid > NBQUEUE || queue[fid].messages == NULL)
         return -1; // fid non valide
 
-    bool empty = false;
-    if (!queue[fid].messages[0].active)
-        empty = true; // file vide
-
-    bool full = false;
-    if (queue[fid].messages[queue[fid].size - 1].active)
-        full = true; // file pleine
+    bool was_empty = !queue[fid].messages[0].active;
+    bool was_full = queue[fid].messages[queue[fid].size - 1].active;
 
     // si un message au moins est disponible dans la file, le premier message est transmis au processus :
     // - lit et enlève le premier (plus ancien) message de la file fid.
@@ -142,12 +123,9 @@ int preceive(int fid, int *message)
             *message = queue[fid].messages[0].content;
         queue[fid].messages[0].active = false;
         tidy_up_queue(fid); // on range la file dès qu'un message est retiré
-
-        /* vérification processus bloqué en file d'attente pleine */
-        check_if_there_is_available_place();
     }
 
-    if (full)
+    if (was_full)
     {
         // si la file était pleine, il faut alors immédiatement compléter la file avec le message du premier processus bloqué sur file pleine ;
         // ce processus devient activable ou actif selon sa priorité
@@ -155,8 +133,9 @@ int preceive(int fid, int *message)
         {
             if (file_procs[i] != NULL && file_procs[i]->etat == BLOQUE_FMSG_PLEINE)
             {
-                queue[fid].messages[queue[fid].size - 1].content = file_procs[i]->lastmsg;
-                queue[fid].messages[queue[fid].size - 1].active = true;
+                queue[fid].messages[0].content = file_procs[i]->lastmsg;
+                queue[fid].messages[0].active = true;
+                printf("%c\n", file_procs[i]->lastmsg); // TODO : ligne à supprimer
                 tidy_up_queue(fid); // on range la file dès qu'un message est ajouté
                 file_procs[i]->etat = ACTIVABLE;
                 ordonnance();
@@ -164,7 +143,7 @@ int preceive(int fid, int *message)
             }
         }
     }
-    else if (empty)
+    else if (was_empty)
     {
         // si aucun message n'est présent, le processus se bloque et sera relancé lors d'un dépôt ultérieur.
         file_procs[proc_actif]->etat = BLOQUE_FMSG_VIDE;
@@ -172,21 +151,8 @@ int preceive(int fid, int *message)
         waiting_for_new_message_file[NBPROC - 1].fid = fid;
         tidy_up_waiting(&waiting_for_new_message_file[0]); // on range la file dès qu'une entrée est ajoutée
         ordonnance();
-        for (int i = 0; i < NBPROC; i++)
-        {
-            int pid = waiting_for_new_message_file[i].pid;
-            if (pid == getpid() && file_procs[getproc(pid)] != NULL)
-            {
-                // on retire l'entrée traitée sur waiting_for_new_message_file
-                waiting_for_new_message_file[i].pid = -1;
-                waiting_for_new_message_file[i].fid = -1;
-
-                // on range la file dès qu'une entrée est retirée
-                tidy_up_waiting(&waiting_for_new_message_file[0]);
-            }
-            break;
-        }
-        preceive(fid, message);
+        if (!file_procs[proc_actif]->del)
+            preceive(fid, message);
     }
 
     return 0;
@@ -240,15 +206,6 @@ int pcount(int fid, int *count)
     return 0;
 }
 
-void init_waiting_for_available_place_file()
-{
-    for (int i = 0; i < NBPROC; i++)
-    {
-        waiting_for_available_place_file[i].pid = -1;
-        waiting_for_available_place_file[i].fid = -1;
-    }
-}
-
 void init_waiting_for_new_message_file()
 {
     for (int i = 0; i < NBPROC; i++)
@@ -265,29 +222,23 @@ void check_if_there_is_new_message()
         int pid = waiting_for_new_message_file[i].pid;
         int fid = waiting_for_new_message_file[i].fid;
 
-        // chaque processus bloqué passe dans l'état activable lorsqu'il y a une place disponible pour envoyer un message
-        if (file_procs[getproc(pid)] != NULL && file_procs[getproc(pid)]->etat == BLOQUE_FMSG_PLEINE && !queue[fid].messages[queue[fid].size - 1].active)
-            file_procs[getproc(pid)]->etat = ACTIVABLE;
-    }
-
-    ordonnance();
-}
-
-void check_if_there_is_new_message()
-{
-        printf("\n---\n");
-        for (int x = 0; x < NBPROC; x++)
-            printf(" %d |", waiting_for_new_message_file[x].pid);
-        printf("\n-F--\n");
-        sleep(1);
-    for (int i = 0; i < NBPROC; i++)
-    {
-        int pid = waiting_for_new_message_file[i].pid;
-        int fid = waiting_for_new_message_file[i].fid;
-
         // chaque processus bloqué passe dans l'état activable lorsqu'il y a un nouveau message
         if (file_procs[getproc(pid)] != NULL && file_procs[getproc(pid)]->etat == BLOQUE_FMSG_VIDE && queue[fid].messages[0].active)
             file_procs[getproc(pid)]->etat = ACTIVABLE;
+    }
+
+    for (int i = 0; i < NBPROC; i++)
+    {
+        int pid = waiting_for_new_message_file[i].pid;
+        if (file_procs[getproc(pid)] != NULL && file_procs[getproc(pid)]->etat != BLOQUE_FMSG_VIDE)
+        {
+            // on retire chaque entrée traitée sur waiting_for_new_message_file
+            waiting_for_new_message_file[i].pid = -1;
+            waiting_for_new_message_file[i].fid = -1;
+
+            // on range la file dès qu'une entrée est retirée
+            tidy_up_waiting(&waiting_for_new_message_file[0]);
+        }
     }
 
     ordonnance();

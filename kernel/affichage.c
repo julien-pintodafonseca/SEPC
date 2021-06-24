@@ -93,7 +93,7 @@ void traite_car(char c)
         ecrit_car(x, y, c);
         if (y >= (NB_COL - 1))
         {
-            if (x >= NB_LIG)
+            if (x >= NB_LIG - 1)
             {
                 defilement();
                 place_curseur((NB_LIG - 1), 0);
