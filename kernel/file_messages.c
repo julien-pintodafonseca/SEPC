@@ -5,9 +5,11 @@
 #include "file_messages.h"
 #include "processus.h"
 
+int fcount = 0;
+
 int pcreate(int count)
 {
-    if (count <= 0 || count >= MAX_COUNT)
+    if (count <= 0 || count >= MAX_COUNT || fcount >= MAX_COUNT)
         return -1; // count non valide
 
     int fid = 0;
@@ -24,6 +26,7 @@ int pcreate(int count)
     {
         queue[fid].messages[mid].active = false; // par défaut, il n'y a aucun message (initialisation file vide)
     }
+    fcount += count;
 
     return fid;
 }
@@ -32,6 +35,7 @@ int pdelete(int fid)
 {
     if (fid < 0 || fid > NBQUEUE || queue[fid].messages == NULL)
         return -1;                                                           // fid non valide
+    fcount -= queue[fid].size;
     mem_free(queue[fid].messages, queue[fid].size * sizeof(struct message)); // on libère une file de messages de capacité size
     queue[fid].messages = NULL;
 

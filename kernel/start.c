@@ -44,12 +44,12 @@ struct
 	{"1", test1},
 	{"2", test2},
 	{"3", test3},
-	//{"4", test4},
+	{"4", test4},
 	{"5", test5},
 	{"6", test6},
-	//{"7", test7},
+	{"7", test7},
 	{"8", test8},
-	//{"9", test9},
+	{"9", test9},
 	{"10", test10},
 	{"11", test11},
 	{"12", test12},
@@ -57,10 +57,10 @@ struct
 	{"14", test14},
 	{"15", test15},
 	{"16", test16},
-	//{"17", test17}, // NOK
+	{"17", test17},
 	//{"18", test18}, // Il manque des fonctions
 	//{"19", test19}, // Il manque des fonctions
-	//{"20", test20}, // NOK
+	{"20", test20}, // NOK
 	{"q", quit},
 };
 

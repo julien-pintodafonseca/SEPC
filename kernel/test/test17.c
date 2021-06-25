@@ -51,7 +51,7 @@ void test17(void)
         assert(pdelete(ids[i]) == 0);
         test_it();
     }
-    printf("n = %d", n);
+    printf("%d", n);
 
     for (i = 0; i < n; i++)
     {

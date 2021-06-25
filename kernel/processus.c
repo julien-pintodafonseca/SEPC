@@ -8,6 +8,8 @@
 #include "horloge.h"
 #include "file_messages.h"
 
+unsigned long pssize = 0;
+
 /**
  * Fonction d'initialisation du processus principal (idle) qui ne doit jamais mourir
  * pt_func : pointeur vers la fonction à exécuter au lancement du processus, à caster de la façon suivante (int (*)(void *))(func)
@@ -50,7 +52,7 @@ void initialize(int (*pt_func)(void *), const char *name)
  */
 int start(int (*pt_func)(void *), unsigned long ssize, int prio, const char *name, void *arg)
 {
-    if (ssize > MAX_INT)
+    if (ssize > HEAP_LEN || pssize + ssize + 256 * sizeof(int) > HEAP_LEN)
         return -1; // erreur de dépassement de la pile
     int i;
     struct processus *tmp;
@@ -73,6 +75,7 @@ int start(int (*pt_func)(void *), unsigned long ssize, int prio, const char *nam
     }
     // on init la pile
     procs[pid].taille_pile = ssize + 256 * sizeof(int);
+    pssize += procs[pid].taille_pile;
     procs[pid].pile = mem_alloc(procs[pid].taille_pile);
     int index_int = procs[pid].taille_pile / 4;
     procs[pid].pile[index_int - 3] = (int)(pt_func);
@@ -268,6 +271,7 @@ void exit(int retval)
  */
 void exit_procs(int processus)
 {
+    pssize -= file_procs[processus]->taille_pile;
     int pid_fils;
     for (int i = 0; i < NBPROC; i++)
     {

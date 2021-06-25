@@ -9,7 +9,7 @@
 
 #define TAILLE_NOM 20
 #define TAILLE_SAUV 5
-#define MAX_INT 2147483647
+#define HEAP_LEN 15 << 20
 #define NBPROC 30
 #define MAXPRIO 256
 
