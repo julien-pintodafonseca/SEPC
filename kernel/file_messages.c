@@ -53,7 +53,7 @@ int pdelete(int fid)
             waiting_for_new_place_file[i].fid = -1;
         }
     }
-
+    ordonnance();
     return 0;
 }
 
