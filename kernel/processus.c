@@ -332,6 +332,34 @@ int kill(int pid)
             }
         }
     }
+    if (file_procs[proc]->etat == BLOQUE_FMSG_VIDE)
+    {
+        // supprimer de la file des processus en attente de réception d'un message
+        for (int i = 0; i < NBPROC; i++)
+        {
+            if (waiting_for_new_message_file[i].pid == pid)
+            {
+                waiting_for_new_message_file[i].pid = -1;
+                waiting_for_new_message_file[i].fid = -1;
+                tidy_up_waiting(&waiting_for_new_message_file[0]);
+                break;
+            }
+        }
+    }
+    if (file_procs[proc]->etat == BLOQUE_FMSG_PLEINE)
+    {
+        // supprimer de la file des processus en attente d'envoie d'un message
+        for (int i = 0; i < NBPROC; i++)
+        {
+            if (waiting_for_new_place_file[i].pid == pid)
+            {
+                waiting_for_new_place_file[i].pid = -1;
+                waiting_for_new_place_file[i].fid = -1;
+                tidy_up_waiting(&waiting_for_new_place_file[0]);
+                break;
+            }
+        }
+    }
     file_procs[proc]->retval = 0;
     exit_procs(proc);
     if (suicide)

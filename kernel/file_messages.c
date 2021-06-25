@@ -85,6 +85,7 @@ int psend(int fid, int message)
         // on dépose donc le message dans la file
         queue[fid].messages[0].content = message;
         queue[fid].messages[0].active = true;
+        ordonnance();
         return 0;
     }
     else if (queue[fid].messages[queue[fid].size - 1].active) // la file est pleine
@@ -118,6 +119,7 @@ int psend(int fid, int message)
     queue[fid].messages[queue[fid].size - 1].content = message;
     queue[fid].messages[queue[fid].size - 1].active = true;
     tidy_up_queue(fid); // on range la file dès qu'un message est ajouté
+    ordonnance();
     return 0;
 }
 
@@ -182,6 +184,7 @@ int preceive(int fid, int *message)
         if (message != NULL)
             *message = procs[getpid()].lastmsg;
     }
+    ordonnance();
     return 0;
 }
 
